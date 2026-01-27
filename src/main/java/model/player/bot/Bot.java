@@ -6,7 +6,6 @@ import model.player.Player;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 
 /**
@@ -16,26 +15,26 @@ import java.util.Set;
 
 public final class Bot implements Player {
 
+    private final int id;
     private final List<Card> hand = new ArrayList<>();
     private final Set<Card> rejectedCards = new LinkedHashSet<>();
-    private final Random r = new Random();
-    //tiene traccia di quante carte ha provato a giocare se è uguale a al numero che ha in mano implica che
-    // bisogna passare il turno
     private Card currentTriedCard;
-    private final int id;
+    private final BotStrategy strategy;
 
     /**
-     * Constructs a new Bot instance with a unique identifier.
+     * Constructs a new Bot instance with a unique identifier and the relate strategy.
      *
      * @param id the unique identifier for this bot
+     * @param strategy the algorithm used fot this bot
      */
-    public Bot(final int id) {
+    public Bot(final int id, final BotStrategy strategy) {
         this.id = id;
+        this.strategy = strategy;
     }
 
     @Override
     public Card playCard() {
-        currentTriedCard = hand.get(r.nextInt(0, hand.size()));
+        currentTriedCard = strategy.chooseCard(hand.stream().filter(card -> !rejectedCards.contains(card)).toList());
         return currentTriedCard;
     }
 
@@ -66,7 +65,7 @@ public final class Bot implements Player {
 
     @Override
     public void notifyMoveResult(final boolean valid) {
-        if (valid) {
+        if (!valid) {
             rejectedCards.add(currentTriedCard);
         } else {
             resetTurn();

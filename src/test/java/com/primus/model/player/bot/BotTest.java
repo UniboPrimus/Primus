@@ -1,6 +1,7 @@
 package com.primus.model.player.bot;
 
 import model.player.bot.Bot;
+import model.player.bot.RandomStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -12,7 +13,7 @@ class BotTest {
 
     @BeforeEach
     void setUp() {
-        bot = new Bot(1);
+        bot = new Bot(1, new RandomStrategy());
     }
 
     @Test
