@@ -30,12 +30,6 @@ public final class AggressiveStrategy implements BotStrategy {
         } else {
             return 2;
         }
-        /* switch (c.getType()) {
-            case WILD_DRAW_FOUR -> 1;  // Tieni per ultima (punteggio basso)
-            case WILD -> 2;
-            case NUMBER -> 50;         // Liberati dei numeri subito
-            default -> 20;             // Usa le action card solo se necessario
-        }*/
     }
 
     @Override
