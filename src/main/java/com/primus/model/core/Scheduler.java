@@ -9,7 +9,7 @@ public interface Scheduler {
     /**
      * @return the next player by advancing the turn order.
      */
-    Player getNextPlayer();
+    Player nextPlayer();
 
     /**
      * @return the next player without advancing the turn order

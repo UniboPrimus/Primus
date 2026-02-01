@@ -20,7 +20,7 @@ public final class SchedulerImpl implements Scheduler {
     }
 
     @Override
-    public Player getNextPlayer() {
+    public Player nextPlayer() {
         moveIndex();
         return players.get(currentIndex);
     }
