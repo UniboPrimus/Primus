@@ -3,6 +3,7 @@ package model.player;
 import model.deck.Card;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Represents a player in the game. A player can either be a human or a bot.
@@ -16,7 +17,7 @@ public interface Player {
      *
      * @return the card played by the player
      */
-    Card playCard();
+    Optional<Card> playCard();
 
     /**
      * Checks if the player is a bot.
@@ -50,4 +51,22 @@ public interface Player {
      * @return true if the player has no cards to play and skips the turn, false otherwise
      */
     boolean passTurn();
+
+    /**
+     * Retrieves the unique identifier of the player.
+     *
+     * @return the unique ID of the player
+     */
+    int getId();
+
+    /**
+     * Notifies the player about the outcome of the last card played.
+     * This method allows the bot to update its internal state (e.g., memory of rejected cards)
+     * or to finalize the turn (e.g., removing the card from hand if valid).
+     *
+     * @param cardPlayed the card been validated
+     * @param valid      true if the move was accepted by the rules, false otherwise.
+     */
+    void notifyMoveResult(Card cardPlayed, boolean valid);
+
 }

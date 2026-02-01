@@ -36,8 +36,8 @@ dependencies{
     testImplementation("org.junit.jupiter:junit-jupiter")
     // The engine that must be available at runtime to run the tests.
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-    // Source: https://mvnrepository.com/artifact/org.projectlombok/lombok
-    implementation("org.projectlombok:lombok:1.18.42")
+    //Spotbugs annotations
+    compileOnly("com.github.spotbugs:spotbugs-annotations:4.7.3")
 }
 
 val test by tasks.getting(Test::class) {
