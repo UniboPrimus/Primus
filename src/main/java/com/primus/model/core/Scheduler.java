@@ -1,6 +1,6 @@
-package model.core;
+package com.primus.model.core;
 
-import model.player.Player;
+import com.primus.model.player.Player;
 
 /**
  * Scheduler interface to manage player turns.

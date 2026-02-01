@@ -1,7 +1,5 @@
 package com.primus.model.player.bot;
 
-import model.player.bot.Bot;
-import model.player.bot.RandomStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

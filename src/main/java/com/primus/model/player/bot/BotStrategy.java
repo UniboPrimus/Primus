@@ -1,6 +1,6 @@
-package model.player.bot;
+package com.primus.model.player.bot;
 
-import model.deck.Card;
+import com.primus.model.deck.Card;
 
 import java.util.List;
 import java.util.Optional;

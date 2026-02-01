@@ -1,7 +1,7 @@
-package model.player.bot;
+package com.primus.model.player.bot;
 
-import model.deck.Card;
-import model.player.Player;
+import com.primus.model.deck.Card;
+import com.primus.model.player.Player;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;

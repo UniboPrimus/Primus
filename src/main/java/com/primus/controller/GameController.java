@@ -1,6 +1,6 @@
-package controller;
+package com.primus.controller;
 
-import model.deck.Card;
+import com.primus.model.deck.Card;
 
 /**
  * Game controller interface, manages the game loop and acts as a bridge between view and model.
