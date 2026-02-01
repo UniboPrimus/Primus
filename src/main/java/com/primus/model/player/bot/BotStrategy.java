@@ -13,12 +13,6 @@ import java.util.Optional;
  */
 @FunctionalInterface
 public interface BotStrategy {
-
-    /*todo vedere come gestire la questione di nessuna carta, lancio una eccezione se la lista di possibili carte è
-        vuota (allora aggiungere
-       la @trhow al metodo?
-       oppure uso gli Optional di carta e lascio a zito?
-    */
     /**
      * Chooses the best card from the hand, ignoring the cards present in failedAttempts.
      *
