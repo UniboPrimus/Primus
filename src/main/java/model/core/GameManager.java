@@ -19,9 +19,9 @@ public interface GameManager {
     GameState getGameState();
 
     /**
-     * @return the current player in this turn
+     * @return the next player by advancing the turn order.
      */
-    Player getCurrentPlayer();
+    Player nextPlayer();
 
     /**
      * Valida una carta basandosi sullo stato di gioco.
