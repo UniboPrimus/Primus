@@ -1,6 +1,6 @@
-package utils;
+package com.primus.utils;
 
-import model.deck.Card;
+import com.primus.model.deck.Card;
 
 import java.util.ArrayList;
 import java.util.List;

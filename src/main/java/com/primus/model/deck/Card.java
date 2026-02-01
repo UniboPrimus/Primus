@@ -1,4 +1,4 @@
-package model.deck;
+package com.primus.model.deck;
 
 /**
  * Card interface.

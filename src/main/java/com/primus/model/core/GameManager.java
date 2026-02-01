@@ -1,8 +1,8 @@
-package model.core;
+package com.primus.model.core;
 
-import utils.GameState;
-import model.deck.Card;
-import model.player.Player;
+import com.primus.model.deck.Card;
+import com.primus.utils.GameState;
+import com.primus.model.player.Player;
 
 /**
  * Game manager interface which handles game states.

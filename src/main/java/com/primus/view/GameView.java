@@ -1,4 +1,4 @@
-package view;
+package com.primus.view;
 
 /**
  * Game view interface.
