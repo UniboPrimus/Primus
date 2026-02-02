@@ -7,7 +7,7 @@ import com.primus.model.deck.Card;
  */
 public interface GameController {
     /**
-     * Starts the game loop in a separate thread.
+     * Starts the game loop.
      */
     void start();
 
