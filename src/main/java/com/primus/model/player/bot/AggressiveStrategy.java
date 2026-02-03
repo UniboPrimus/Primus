@@ -12,7 +12,7 @@ import java.util.Optional;
  * This strategy aims to select the most impactful card to play based on the
  * provided list of possible cards.
  */
-public final class AggressiveStrategy implements BotStrategy {
+public final class AggressiveStrategy implements CardStrategy {
     /**
      * Chooses the most aggressive card from the list of possible cards.
      * The logic for determining the "most aggressive" card should be implemented here.

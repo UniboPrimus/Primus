@@ -7,23 +7,23 @@ import java.util.Objects;
 /**
  * Concrete implementation of the {@link BotFactory} interface.
  * Responsible for instantiating {@link Bot} objects and injecting the appropriate
- * {@link BotStrategy} and unique identifier into them.
+ * {@link CardStrategy} and unique identifier into them.
  */
 public final class BotFactoryImpl implements BotFactory {
 
     @Override
     public Player createFortuitus(final int id) {
-        return new Bot(id, new RandomStrategy());
+        return new Bot(id, new RandomStrategy(), new RandomColorStrategy());
     }
 
     @Override
     public Player createImplacabilis(final int id) {
-        return new Bot(id, new AggressiveStrategy());
+        return new Bot(id, new AggressiveStrategy(), new RandomColorStrategy());
     }
 
     @Override
     public Player createFallax(final int id, final Player victim) {
         Objects.requireNonNull(victim);
-        return new Bot(id, new CheaterStrategy(new OpponentInfoImpl(victim)));
+        return new Bot(id, new CheaterStrategy(new OpponentInfoImpl(victim)), new RandomColorStrategy());
     }
 }

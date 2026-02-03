@@ -40,6 +40,18 @@ public final class PrimusCard implements Card {
     }
 
     @Override
+    public boolean isNativeBlack() {
+        //todo
+        return false;
+    }
+
+    @Override
+    public Card withColor(final Color c) {
+        //todo
+        return null;
+    }
+
+    @Override
     public String toString() {
         return "PrimusCard{"
                 + "color=" + color

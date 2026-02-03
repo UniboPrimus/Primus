@@ -7,11 +7,11 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * An advanced implementation of {@link BotStrategy} representing a "cheater" personality.
+ * An advanced implementation of {@link CardStrategy} representing a "cheater" personality.
  * This strategy has access to an opponent's information via {@link OpponentInfo},
  * allowing it to make decisions based on the opponent's current hand.
  */
-public final class CheaterStrategy implements BotStrategy {
+public final class CheaterStrategy implements CardStrategy {
     private final OpponentInfo victim;
 
     /**

@@ -12,7 +12,7 @@ import java.util.Optional;
  * and failed.
  */
 @FunctionalInterface
-public interface BotStrategy {
+public interface CardStrategy {
 
     /**
      * Chooses the best card from the hand, ignoring the cards present in failedAttempts.

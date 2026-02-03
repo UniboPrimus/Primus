@@ -9,6 +9,9 @@ import java.util.Objects;
  * Maintains a simple integer counter for the accumulated penalties.
  */
 public final class SanctionerImpl implements Sanctioner {
+    private static final int DRAW_TWO_PENALTY = 2;
+    private static final int DRAW_FOUR_PENALTY = 4;
+
     private int malusAmount;
 
     @Override
@@ -22,12 +25,11 @@ public final class SanctionerImpl implements Sanctioner {
     }
 
     @Override
-    public void accumulate(final Card c) {
-        Objects.requireNonNull(c);
-        switch (c.getValue()) {
-            //todo refactoring senza numeri magici
-            case DRAW_TWO -> malusAmount += 2;
-            case WILD_DRAW_FOUR -> malusAmount += 4;
+    public void accumulate(final Card card) {
+        Objects.requireNonNull(card);
+        switch (card.getValue()) {
+            case DRAW_TWO -> malusAmount += DRAW_TWO_PENALTY;
+            case WILD_DRAW_FOUR -> malusAmount += DRAW_FOUR_PENALTY;
             default -> {
             }
         }

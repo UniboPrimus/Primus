@@ -1,6 +1,7 @@
 package com.primus.model.player.bot;
 
 import com.primus.model.deck.Card;
+import com.primus.model.deck.Color;
 import com.primus.model.player.Player;
 
 import java.util.ArrayList;
@@ -18,22 +19,46 @@ public final class Bot implements Player {
     private final int id;
     private final List<Card> hand = new ArrayList<>();
     private final Set<Card> rejectedCards = new LinkedHashSet<>();
-    private final BotStrategy strategy;
+    private final CardStrategy cardStrategy;
+    private final ColorStrategy colorStrategy;
 
     /**
-     * Constructs a new Bot instance with a unique identifier and the relate strategy.
+     * Constructs a new Bot with specific strategies for card selection and color decision.
      *
-     * @param id       the unique identifier for this bot
-     * @param strategy the algorithm used fot this bot
+     * @param id            the unique identifier
+     * @param cardStrategy  the logic to select cards
+     * @param colorStrategy the logic to select colors for Wild cards
      */
-    public Bot(final int id, final BotStrategy strategy) {
+    public Bot(final int id, final CardStrategy cardStrategy, final ColorStrategy colorStrategy) {
         this.id = id;
-        this.strategy = strategy;
+        this.cardStrategy = Objects.requireNonNull(cardStrategy);
+        this.colorStrategy = Objects.requireNonNull(colorStrategy);
     }
 
     @Override
     public Optional<Card> playCard() {
-        return strategy.chooseCard(calculatePossibleMoves());
+        // the card strategy pick a card among possible moves
+        final Optional<Card> chosenOpt = cardStrategy.chooseCard(calculatePossibleMoves());
+        if (chosenOpt.isPresent()) {
+            final Card card = chosenOpt.get();
+            // if the selected card is a black card decide its new color using color strategy and return it
+            if (card.isNativeBlack()) {
+                final Color chosenColor = colorStrategy.chooseColor(getHand());
+                return Optional.of(card.withColor(chosenColor));
+            }
+        }
+        return chosenOpt;
+    }
+
+    @Override
+    public boolean passTurn() {
+        return cardStrategy.chooseCard(calculatePossibleMoves()).isEmpty();
+    }
+
+    private List<Card> calculatePossibleMoves() {
+        return hand.stream()
+                .filter(card -> !rejectedCards.contains(card))
+                .toList();
     }
 
     @Override
@@ -50,18 +75,6 @@ public final class Bot implements Player {
     public void addCards(final List<Card> cards) {
         Objects.requireNonNull(cards);
         hand.addAll(cards);
-    }
-
-    @Override
-    public boolean passTurn() {
-        // ask the strategy want to pass or not
-        return strategy.chooseCard(calculatePossibleMoves()).isEmpty();
-    }
-
-    private List<Card> calculatePossibleMoves() {
-        return hand.stream()
-                .filter(card -> !rejectedCards.contains(card))
-                .toList();
     }
 
     @Override
@@ -108,7 +121,8 @@ public final class Bot implements Player {
                 + "id=" + id
                 + ", hand=" + hand
                 + ", rejectedCards=" + rejectedCards
-                + ", strategy=" + strategy
+                + ", card strategy=" + cardStrategy
+                + ", color strategy=" + colorStrategy
                 + '}';
     }
 }
