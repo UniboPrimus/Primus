@@ -12,7 +12,7 @@ import java.util.Random;
  * This strategy does not consider any specific game logic or constraints
  * and simply picks a card randomly from the provided list of possible cards.
  */
-public final class RandomStrategy implements BotStrategy {
+public final class RandomStrategy implements CardStrategy {
     private final Random random = new Random();
 
     /**

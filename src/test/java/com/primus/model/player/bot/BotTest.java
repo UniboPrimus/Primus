@@ -12,7 +12,7 @@ class BotTest {
 
     @BeforeEach
     void setUp() {
-        bot = new Bot(1, new RandomStrategy());
+        bot = new Bot(1, new RandomStrategy(), new RandomColorStrategy());
     }
 
     @Test
@@ -22,7 +22,7 @@ class BotTest {
 
     @Test
     void testEquals() {
-        final Bot temp = new Bot(1, new RandomStrategy());
+        final Bot temp = new Bot(1, new RandomStrategy(), new RandomColorStrategy());
         assertEquals(temp, bot, "Bot with same id must be equals ");
     }
 }
