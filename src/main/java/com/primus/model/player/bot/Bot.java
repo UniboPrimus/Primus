@@ -46,13 +46,10 @@ public final class Bot implements Player {
                 final Color chosenColor = colorStrategy.chooseColor(getHand());
                 return Optional.of(card.withColor(chosenColor));
             }
+        } else { //pass turn
+            rejectedCards.clear();
         }
         return chosenOpt;
-    }
-
-    @Override
-    public boolean passTurn() {
-        return cardStrategy.chooseCard(calculatePossibleMoves()).isEmpty();
     }
 
     private List<Card> calculatePossibleMoves() {
