@@ -26,13 +26,6 @@ public interface GameManager {
     Player nextPlayer();
 
     /**
-     * Assigns malus cards to the current player if any are available and skips the turn if necessary.
-     *
-     * @return {@code True} if the player has suffered a malus and must skip the turn
-     */
-    boolean resolvePreTurnMalus();
-
-    /**
      * @return An {@link Optional} containing the winner player if the game is finished, empty otherwise
      */
     Optional<Player> getWinner();
@@ -40,9 +33,8 @@ public interface GameManager {
     /**
      * Executes the turn for the current player with the chosen card.
      *
-     * @param currentPlayer the player whose turn it is
      * @param chosenCard the card chosen to play, may be null if drawing
      * @return {@code True} if the turn was executed successfully
      */
-    boolean executeTurn(Player currentPlayer, Card chosenCard);
+    boolean executeTurn(Card chosenCard);
 }

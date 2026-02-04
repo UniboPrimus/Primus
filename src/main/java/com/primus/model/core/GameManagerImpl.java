@@ -1,19 +1,26 @@
 package com.primus.model.core;
 
 import com.primus.model.deck.Card;
+import com.primus.model.deck.Deck;
+import com.primus.model.deck.DropPile;
 import com.primus.model.player.Player;
+import com.primus.model.player.bot.BotFactory;
+import com.primus.model.rules.Sanctioner;
+import com.primus.model.rules.Validator;
+import com.primus.model.deck.PrimusDropPile;
+import com.primus.model.deck.PrimusDeck;
+import com.primus.model.player.bot.BotFactoryImpl;
+import com.primus.model.rules.SanctionerImpl;
+import com.primus.model.rules.ValidatorImpl;
 import com.primus.utils.GameState;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Optional;
 // TODO aggiungere i veri import
-// import com.primus.model.player.PlayerFactory;
 // import com.primus.model.player.HumanPlayer;
-// import com.primus.model.deck.Deck;
-// import com.primus.model.deck.DiscardPile;
 
 /**
  * Implementation of {@link GameManager} to manage the game flow. It offers an API
@@ -24,9 +31,10 @@ public final class GameManagerImpl implements GameManager {
     private static final int CARD_NUMBER = 7;
 
     private final List<Player> players;
-    private final Deck deck;
-    private final DiscardPile discardPile;
     private final Sanctioner sanctioner;
+    private final Validator validator;
+    private Deck deck;
+    private DropPile discardPile;
     private Scheduler scheduler;
     private Player activePlayer;
 
@@ -34,30 +42,28 @@ public final class GameManagerImpl implements GameManager {
      * Constructor initializes the game manager with necessary components.
      */
     public GameManagerImpl() {
-        this.deck = new DeckImpl();
-        this.discardPile = new DiscardPileimpl();
-        this.sanctioner = new SanctionerStub();
+        this.deck = new PrimusDeck();
+        this.sanctioner = new SanctionerImpl();
+        this.validator = new ValidatorImpl();
         this.players = new ArrayList<>();
         this.init(); // Ensure the game is initialized upon creation
     }
 
     @Override
     public void init() {
+        this.discardPile = new PrimusDropPile();
+        this.deck = new PrimusDeck();
+        this.deck.init();
         this.players.clear();
-        this.discardPile.clear();
-        this.deck.reset();
         this.activePlayer = null;
         this.sanctioner.reset();
+        final BotFactory botFactory = new BotFactoryImpl();
 
-        // TODO: creare in modo corretto i giocatori quando esisterà il metodo per farlo
-        // Create human player
-        // Player human = new HumanPlayer("Giocatore Umano");
-        // this.players.add(human);
+        // TODO: creare il giocatore umano e poi fornirlo a bot Fallax
 
-        // Create bot players
-        // this.players.add(PlayerFactory.createBot(Type, "Bot 1"));
-        // this.players.add(PlayerFactory.createBot(Type, "Bot 2"));
-        // this.players.add(PlayerFactory.createBot(Type, "Bot 3"));
+        this.players.add(botFactory.createFortuitus(1));
+        this.players.add(botFactory.createImplacabilis(2));
+        //this.players.add(botFactory.createFallax(3, HUMAN_PLAYER));
 
         // Create the scheduler by passing the players to it
         this.scheduler = new SchedulerImpl(this.players);
@@ -65,21 +71,21 @@ public final class GameManagerImpl implements GameManager {
         // Distribute cards
         for (final Player p : this.players) {
             for (int i = 0; i < CARD_NUMBER; i++) {
-                final Card c = this.deck.draw();
+                final Card c = this.drawDeckCard();
                 p.addCards(List.of(c));
             }
         }
 
         // Draw the start card
-        this.discardPile.add(this.deck.draw());
+        this.discardPile.addCard(this.drawDeckCard());
     }
 
     @Override
     public GameState getGameState() {
         if (this.activePlayer == null) {
-            return new GameState(this.discardPile.getTopCard(), scheduler.peekNextPlayer().getHand());
+            return new GameState(this.discardPile.peek(), scheduler.peekNextPlayer().getHand());
         }
-        return new GameState(this.discardPile.getTopCard(), this.activePlayer.getHand());
+        return new GameState(this.discardPile.peek(), this.activePlayer.getHand());
     }
 
     @SuppressFBWarnings(
@@ -93,47 +99,28 @@ public final class GameManagerImpl implements GameManager {
     }
 
     @Override
-    public boolean resolvePreTurnMalus() {
-        Objects.requireNonNull(this.activePlayer);
+    public boolean executeTurn(final Card card) {
 
-        if (sanctioner.hasPendingMalus()) {
-            final int amount = sanctioner.getCarteDaAggiungere();
-
-            // Apply malus
-            for (int i = 0; i < amount; i++) {
-                drawCardForPlayer(this.activePlayer);
-            }
-
-            // Reset sanctioner
-            sanctioner.reset();
-
-            // Skip turn for the player due to malus
-            scheduler.skipTurn();
-
-            return true;
+        // If there's an active sanction, the player must resolve instead of playing a normal turn
+        if (sanctioner.isActive()) {
+            return handleMalus(this.activePlayer, card);
         }
-        return false;
-    }
-
-    @Override
-    public boolean executeTurn(final Player player, final Card card) {
-        Objects.requireNonNull(player);
 
         // User chooses to draw a card
         if (card == null) {
-            drawCardForPlayer(player);
+            drawCardForPlayer(this.activePlayer);
             return true;
         }
 
         // User plays a card, so it must be validated
-        if (!validateCard(card, player)) {
-            player.notifyMoveResult(card, false);
+        if (!validator.isValidCard(discardPile.peek(), card)) {
+            this.activePlayer.notifyMoveResult(card, false);
             return false;
         }
 
         // Confirm the move and apply effects
-        player.notifyMoveResult(card, true);
-        this.discardPile.add(card);
+        this.activePlayer.notifyMoveResult(card, true);
+        this.discardPile.addCard(card);
 
         applyCardEffects(card);
 
@@ -151,35 +138,67 @@ public final class GameManagerImpl implements GameManager {
     }
 
     /**
-     * Validates if the played card can be legally played.
+     * Handles the situation where a player is under a sanction (malus). The player can either
+     * <ul>
+     *  <li>defend against the sanction by playing a valid {@link Card}</li>
+     *  <li>accept the sanction by drawing the required number of {@link Card}</li>
+     * </ul>
+     * Trying to play an invalid card will result in a failed attempt.
      *
-     * @param cardCandidate the card being played
-     * @param player        the player attempting to play the card
-     * @return `True` if the card can be played
+     * @param player the player whose turn it is
+     * @param card   the card played by the player to defend against the sanction, or null if drawing
+     * @return {@code true} if player successfully defends or accepts the malus
      */
-    @SuppressWarnings("PMD.UnusedFormalParameter")
-    private boolean validateCard(final Card cardCandidate, final Player player) {
-        // TODO gestire quando si avrà il vero validator
-        final Card topCard = this.discardPile.getTopCard();
-        // Logica stub
-        if (cardCandidate.getColor() == topCard.getColor()
-                || cardCandidate.getValue() == topCard.getValue()) {
+    private boolean handleMalus(final Player player, final Card card) {
+        Objects.requireNonNull(player);
+
+        // Player chooses not to defend (probably he couldn't)
+        if (card == null) {
+            final int amount = sanctioner.getMalusAmount();
+
+            // Apply malus
+            for (int i = 0; i < amount; i++) {
+                drawCardForPlayer(player);
+            }
+            sanctioner.reset();
+
             return true;
         }
-        return cardCandidate.getColor().name().contains("WILD");
+
+        // Player is defending against an active sanction
+        if (sanctioner.isActive() && validator.isValidDefense(discardPile.peek(), card)) {
+            player.notifyMoveResult(card, true);
+            discardPile.addCard(card);
+            applyCardEffects(card);
+            return true;
+        }
+
+        // Invalid defense attempt
+        player.notifyMoveResult(card, false);
+        return false;
+    }
+
+    /**
+     * Draws a card from the deck, refilling it from the discard pile if necessary.
+     *
+     * @return the drawn card
+     */
+    private Card drawDeckCard() {
+        if (this.deck.isEmpty()) {
+            this.deck.refillFrom(this.discardPile);
+        }
+        return this.deck.drawCard();
     }
 
     /**
      * Draws a card from the deck and adds it to the player's hand.
      *
-     * @param p the player drawing the card
+     * @param player the player drawing the card
      */
-    private void drawCardForPlayer(final Player p) {
-        Objects.requireNonNull(p);
-
-        final Card c = this.deck.draw();
+    private void drawCardForPlayer(final Player player) {
+        final Card c = this.drawDeckCard();
         if (c != null) {
-            p.addCards(List.of(c));
+            player.addCards(List.of(c));
         }
     }
 
@@ -189,93 +208,16 @@ public final class GameManagerImpl implements GameManager {
      * @param card the card whose effects are to be applied
      */
     private void applyCardEffects(final Card card) {
-        //TODO gestire quando si avrà il sanctioner
         Objects.requireNonNull(card);
-        final String val = Objects.requireNonNull(card.getValue().name());
 
-        if ("SKIP".equals(val)) {
-            scheduler.skipTurn();
-        } else if ("REVERSE".equals(val)) {
-            scheduler.reverseDirection();
+        switch (card.getValue()) {
+            case SKIP -> scheduler.skipTurn();
+            case REVERSE -> scheduler.reverseDirection();
+            default -> {
+            }
         }
 
-        sanctioner.evaluateCard(card);
-    }
-
-    // Necessary development stubs, development only
-
-    public interface Deck {
-
-        Card draw();
-
-        void reset();
-    }
-
-    private final class DeckImpl implements Deck {
-
-        @Override
-        public Card draw() {
-            return null;
-        }
-
-        @Override
-        public void reset() {
-        }
-    }
-
-    public interface DiscardPile {
-
-        void add(Card firstCard);
-
-        Card getTopCard();
-
-        void clear();
-    }
-
-    private final class DiscardPileimpl implements DiscardPile {
-
-        @Override
-        public void add(Card firstCard) {
-        }
-
-        @Override
-        public Card getTopCard() {
-            return null;
-        }
-
-        @Override
-        public void clear() {
-        }
-    }
-
-    public interface Sanctioner {
-        boolean hasPendingMalus();
-
-        int getCarteDaAggiungere();
-
-        void evaluateCard(Card card);
-
-        void reset();
-    }
-
-    private final class SanctionerStub implements Sanctioner {
-        private int count = 0;
-
-        public boolean hasPendingMalus() {
-            return count > 0;
-        }
-
-        public int getCarteDaAggiungere() {
-            return count;
-        }
-
-        public void reset() {
-            count = 0;
-        }
-
-        public void evaluateCard(Card c) {
-            if (c.getValue().name().equals("DRAW_TWO")) count += 2;
-            if (c.getValue().name().equals("WILD_DRAW_FOUR")) count += 4;
-        }
+        // Accumulate sanctions if the card has any effect that triggers them (e.g., Draw Two, Wild Draw Four)
+        sanctioner.accumulate(card);
     }
 }
