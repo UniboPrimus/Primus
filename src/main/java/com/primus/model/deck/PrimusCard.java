@@ -39,16 +39,26 @@ public final class PrimusCard implements Card {
         return value;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isNativeBlack() {
-        //todo
-        return false;
+        return value == Values.WILD || value == Values.WILD_DRAW_FOUR;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public Card withColor(final Color c) {
-        //todo
-        return null;
+    public Card withColor(final Color newColor) {
+        Objects.requireNonNull(newColor, "New color cannot be null");
+
+        if (this.color == newColor) {
+            return this;
+        }
+
+        return new PrimusCard(newColor, this.value);
     }
 
     @Override
