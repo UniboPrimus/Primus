@@ -1,4 +1,4 @@
-package com.primus.model.player.bot;
+package com.primus.model.player.bot.strategy.color;
 
 import com.primus.model.deck.Card;
 import com.primus.model.deck.Color;

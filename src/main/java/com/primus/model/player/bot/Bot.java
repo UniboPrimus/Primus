@@ -3,6 +3,8 @@ package com.primus.model.player.bot;
 import com.primus.model.deck.Card;
 import com.primus.model.deck.Color;
 import com.primus.model.player.Player;
+import com.primus.model.player.bot.strategy.card.CardStrategy;
+import com.primus.model.player.bot.strategy.color.ColorStrategy;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;

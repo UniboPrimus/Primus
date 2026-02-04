@@ -1,4 +1,4 @@
-package com.primus.model.player.bot;
+package com.primus.model.player.bot.strategy.card;
 
 import com.primus.model.deck.Card;
 
@@ -41,7 +41,7 @@ public final class AggressiveStrategy implements CardStrategy {
     }
 
     /**
-     * Internal enumeration to define strategic weights.
+     * Enumeration to define strategic weights.
      */
     private enum Priority {
         ULTIMATE(100),

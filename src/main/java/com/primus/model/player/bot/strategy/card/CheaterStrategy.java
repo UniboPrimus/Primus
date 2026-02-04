@@ -1,6 +1,7 @@
-package com.primus.model.player.bot;
+package com.primus.model.player.bot.strategy.card;
 
 import com.primus.model.deck.Card;
+import com.primus.model.player.bot.OpponentInfo;
 
 import java.util.Comparator;
 import java.util.List;

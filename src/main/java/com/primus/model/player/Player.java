@@ -16,7 +16,7 @@ public interface Player {
      * Attempts to play a card from the player's hand.
      *
      * @return an {@code Optional} containing the card if the player is trying to play a card,
-     *         or an empty {@code Optional} if the player decides to pass the turn.
+     *      or an empty {@code Optional} if the player decides to pass the turn.
      */
     Optional<Card> playCard();
 

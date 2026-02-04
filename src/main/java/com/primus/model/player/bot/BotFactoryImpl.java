@@ -1,6 +1,11 @@
 package com.primus.model.player.bot;
 
 import com.primus.model.player.Player;
+import com.primus.model.player.bot.strategy.card.AggressiveStrategy;
+import com.primus.model.player.bot.strategy.card.CardStrategy;
+import com.primus.model.player.bot.strategy.card.CheaterStrategy;
+import com.primus.model.player.bot.strategy.card.RandomStrategy;
+import com.primus.model.player.bot.strategy.color.RandomColorStrategy;
 
 import java.util.Objects;
 
