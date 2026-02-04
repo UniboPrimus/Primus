@@ -24,6 +24,9 @@ public final class GameControllerImpl implements GameController {
     private final GameView view;
     private CompletableFuture<Card> humanInputFuture;
 
+    // Flag to control the game loop, useful for stopping the game gracefully
+    private volatile boolean isRunning;
+
     /**
      * Constructor for GameControllerImpl.
      *
@@ -37,20 +40,14 @@ public final class GameControllerImpl implements GameController {
 
     @Override
     public void start() {
+        this.isRunning = true;
         manager.init();
         view.updateView(manager.getGameState());
 
         // Game Loop
-        while (manager.getWinner().isEmpty()) {
+        while (manager.getWinner().isEmpty() && isRunning) {
             final Player currentPlayer = manager.nextPlayer();
             view.showCurrentPlayer(currentPlayer);
-
-            // Check if the current player has to skip turn due to malus
-            if (manager.resolvePreTurnMalus()) {
-                view.showMessage(currentPlayer.getId() + " salta il turno per penalità.");
-                view.updateView(manager.getGameState());
-                continue;
-            }
 
             // Management of turn based on player type
             if (currentPlayer.isBot()) {
@@ -70,6 +67,7 @@ public final class GameControllerImpl implements GameController {
 
     @Override
     public void stop() {
+        this.isRunning = false;
         if (this.humanInputFuture != null && !this.humanInputFuture.isDone()) {
             this.humanInputFuture.cancel(true);
         }
@@ -101,14 +99,14 @@ public final class GameControllerImpl implements GameController {
 
         // Loop until the bot completes its turn in a valid way
         while (!turnCompleted) {
-            sleep(this.BOT_DELAY); // Little delay for realism
+            sleep(); // Little delay for realism
 
             // Ask the bot for its intention
             final Optional<Card> intention = player.playCard();
 
             // Bot decides to draw a card
             if (intention.isEmpty()) {
-                manager.executeTurn(player, null);
+                manager.executeTurn(null);
                 view.showMessage(player.getId() + " ha pescato.");
                 turnCompleted = true;
             } else {
@@ -116,7 +114,7 @@ public final class GameControllerImpl implements GameController {
                 final Card cardToPlay = intention.get();
 
                 // Try to execute the turn with the chosen card
-                final boolean moveAccepted = manager.executeTurn(player, cardToPlay);
+                final boolean moveAccepted = manager.executeTurn(cardToPlay);
 
                 if (moveAccepted) {
                     view.showMessage(player.getId() + " gioca " + cardToPlay);
@@ -147,7 +145,7 @@ public final class GameControllerImpl implements GameController {
                 final Card chosenCard = this.humanInputFuture.get();
 
                 // Try to execute the turn with the chosen card (null if drawing)
-                final boolean moveAccepted = manager.executeTurn(player, chosenCard);
+                final boolean moveAccepted = manager.executeTurn(chosenCard);
 
                 if (moveAccepted) {
                     turnCompleted = true;
@@ -157,7 +155,11 @@ public final class GameControllerImpl implements GameController {
                 }
 
             } catch (InterruptedException | ExecutionException e) {
-                //TODO gestire i log
+                // If thread is interrupted the game should stop gracefully
+                stop();
+                Thread.currentThread().interrupt();
+            } catch (final java.util.concurrent.CancellationException e) {
+                // Future was cancelled
                 stop();
             }
         }
@@ -165,12 +167,10 @@ public final class GameControllerImpl implements GameController {
 
     /**
      * Sleeps the current thread for a specified duration.
-     *
-     * @param ms milliseconds to sleep
      */
-    private void sleep(final int ms) {
+    private void sleep() {
         try {
-            Thread.sleep(ms);
+            Thread.sleep(GameControllerImpl.BOT_DELAY);
         } catch (final InterruptedException e) {
             Thread.currentThread().interrupt();
         }
