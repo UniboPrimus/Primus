@@ -28,7 +28,7 @@ public final class MostFrequentColorStrategy implements ColorStrategy {
             }
         }
         final var chooseColor = map.entrySet().stream().max(Comparator.comparingInt(Map.Entry::getValue));
-        // E.g. all card are black mean the color is not important
+        // E.g. all card are black means the color is not important
         if (chooseColor.isEmpty()) {
             return Color.RED;
         }
