@@ -12,12 +12,12 @@ import java.util.Objects;
  *
  * @param topCard currently played card
  * @param activeHand current player's hand
- * @param activePlayer current player
+ * @param playerId current player ID
  */
 public record GameState(
         Card topCard,
         List<Card> activeHand,
-        Player activePlayer
+        int playerId
 ) {
 
     /**
@@ -25,11 +25,10 @@ public record GameState(
      *
      * @param topCard currently played card
      * @param activeHand current player's hand
-     * @param activePlayer current player
+     * @param playerId current player's ID
      */
     public GameState {
         Objects.requireNonNull(topCard);
-        Objects.requireNonNull(activePlayer);
         Objects.requireNonNull(activeHand);
 
         activeHand = List.copyOf(activeHand);
@@ -39,14 +38,14 @@ public record GameState(
      * @return a copy of the state changing the top card
      */
     public GameState withTopCard(final Card newTopCard) {
-        return new GameState(newTopCard, this.activeHand, this.activePlayer);
+        return new GameState(newTopCard, this.activeHand, this.playerId);
     }
 
     /**
-     * @return a copy of the state changing the active player
+     * @return a copy of the state changing the active player ID
      */
-    public GameState withActivePlayer(final Player newPlayer) {
-        return new GameState(this.topCard, this.activeHand, newPlayer);
+    public GameState withActivePlayer(final int playerId) {
+        return new GameState(this.topCard, this.activeHand, playerId);
     }
 
     /**
@@ -55,6 +54,6 @@ public record GameState(
     public GameState withAddedCard(final Card card) {
         final List<Card> newHand = new ArrayList<>(this.activeHand);
         newHand.add(card);
-        return new GameState(this.topCard, newHand, this.activePlayer);
+        return new GameState(this.topCard, newHand, this.playerId);
     }
 }

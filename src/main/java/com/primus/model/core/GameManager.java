@@ -3,7 +3,9 @@ package com.primus.model.core;
 import com.primus.model.deck.Card;
 import com.primus.utils.GameState;
 import com.primus.model.player.Player;
+import com.primus.utils.PlayerSetupData;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -19,6 +21,11 @@ public interface GameManager {
      * @return the game state in current turn
      */
     GameState getGameState();
+
+    /**
+     * @return a list of {@link PlayerSetupData} containing the necessary information to create player instances and initialize the game.
+     */
+    List<PlayerSetupData> getGameSetup();
 
     /**
      * @return the next player by advancing the turn order.

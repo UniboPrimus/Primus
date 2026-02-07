@@ -13,12 +13,10 @@ import com.primus.model.player.bot.BotFactoryImpl;
 import com.primus.model.rules.SanctionerImpl;
 import com.primus.model.rules.ValidatorImpl;
 import com.primus.utils.GameState;
+import com.primus.utils.PlayerSetupData;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 // TODO aggiungere i veri import
 // import com.primus.model.player.HumanPlayer;
 
@@ -30,61 +28,63 @@ import java.util.Optional;
 public final class GameManagerImpl implements GameManager {
     private static final int CARD_NUMBER = 7;
 
-    private final List<Player> players;
+    private final Map<Integer, Player> players;
     private final Sanctioner sanctioner;
     private final Validator validator;
     private Deck deck;
     private DropPile discardPile;
     private Scheduler scheduler;
-    private Player activePlayer;
 
     /**
      * Constructor initialises the game manager with necessary components.
      */
     public GameManagerImpl() {
-        this.deck = new PrimusDeck();
-        this.sanctioner = new SanctionerImpl();
-        this.validator = new ValidatorImpl();
-        this.players = new ArrayList<>();
-        this.init(); // Ensure the game is initialized upon creation
+        deck = new PrimusDeck();
+        sanctioner = new SanctionerImpl();
+        validator = new ValidatorImpl();
+        players = new HashMap<>();
+        init(); // Ensure the game is initialized upon creation
     }
 
     @Override
     public void init() {
-        this.discardPile = new PrimusDropPile();
-        this.deck = new PrimusDeck();
-        this.deck.init();
-        this.players.clear();
-        this.activePlayer = null;
-        this.sanctioner.reset();
+        discardPile = new PrimusDropPile();
+        deck = new PrimusDeck();
+        deck.init();
+        players.clear();
+        sanctioner.reset();
         final BotFactory botFactory = new BotFactoryImpl();
 
         // TODO: creare il giocatore umano e poi fornirlo a bot Fallax
 
-        this.players.add(botFactory.createFortuitus(1));
-        this.players.add(botFactory.createImplacabilis(2));
+        players.put(1, botFactory.createFortuitus(1));
+        players.put(2, botFactory.createImplacabilis(2));
         //this.players.add(botFactory.createFallax(3, HUMAN_PLAYER));
 
         // Create the scheduler by passing the players IDs to it
-        final List<Integer> playerIds = this.players.stream().map(Player::getId).toList();
-        this.scheduler = new SchedulerImpl(playerIds);
+        scheduler = new SchedulerImpl(players.keySet());
 
         // Distribute cards
-        for (final Player p : this.players) {
+        for (final Player p : players.values()) {
             for (int i = 0; i < CARD_NUMBER; i++) {
-                final Card c = this.drawDeckCard();
+                final Card c = drawDeckCard();
                 p.addCards(List.of(c));
             }
         }
 
         // Draw the start card
-        this.discardPile.addCard(this.drawDeckCard());
+        discardPile.addCard(drawDeckCard());
     }
 
     @Override
     public GameState getGameState() {
-        Objects.requireNonNull(this.activePlayer, "Active player missing, the game is probably not initialized yet");
-        return new GameState(this.discardPile.peek(), this.activePlayer.getHand(), this.activePlayer);
+        return new GameState(discardPile.peek(), getActivePlayer().getHand(), scheduler.getCurrentPlayer());
+    }
+
+    public List<PlayerSetupData> getGameSetup() {
+        return players.values().stream()
+                .map(p -> new PlayerSetupData(p.getId(), !p.isBot()))
+                .toList();
     }
 
     @SuppressFBWarnings(
@@ -93,34 +93,31 @@ public final class GameManagerImpl implements GameManager {
     )
     @Override
     public Player nextPlayer() {
-        this.activePlayer = this.players.stream().filter((p) -> p.getId() == scheduler.nextPlayer()).findFirst().orElseThrow();
-        return this.activePlayer;
+        return players.get(scheduler.nextPlayer());
     }
 
     @Override
     public boolean executeTurn(final Card card) {
-        Objects.requireNonNull(this.activePlayer, "Cannot execute turn without an active player. Call nextPlayer() first.");
-
         // If there's an active sanction, the player must resolve instead of playing a normal turn
         if (sanctioner.isActive()) {
-            return handleMalus(this.activePlayer, card);
+            return handleMalus(getActivePlayer(), card);
         }
 
         // User chooses to draw a card
         if (card == null) {
-            drawCardForPlayer(this.activePlayer);
+            drawCardForPlayer(getActivePlayer());
             return true;
         }
 
         // User plays a card, so it must be validated
         if (!validator.isValidCard(discardPile.peek(), card)) {
-            this.activePlayer.notifyMoveResult(card, false);
+            getActivePlayer().notifyMoveResult(card, false);
             return false;
         }
 
         // Confirm the move and apply effects
-        this.activePlayer.notifyMoveResult(card, true);
-        this.discardPile.addCard(card);
+        getActivePlayer().notifyMoveResult(card, true);
+        discardPile.addCard(card);
 
         applyCardEffects(card);
 
@@ -129,7 +126,14 @@ public final class GameManagerImpl implements GameManager {
 
     @Override
     public Optional<Integer> getWinner() {
-        return this.players.stream().filter((p) -> p.getHand().isEmpty()).map(Player::getId).findFirst();
+        return players.values().stream().filter((p) -> p.getHand().isEmpty()).map(Player::getId).findFirst();
+    }
+
+    /**
+     * @return the player whose turn it is, based on the scheduler's current player ID
+     */
+    private Player getActivePlayer() {
+        return Objects.requireNonNull(players.get(scheduler.getCurrentPlayer()));
     }
 
     /**
@@ -179,10 +183,10 @@ public final class GameManagerImpl implements GameManager {
      * @return the drawn card
      */
     private Card drawDeckCard() {
-        if (this.deck.isEmpty()) {
-            this.deck.refillFrom(this.discardPile);
+        if (deck.isEmpty()) {
+            deck.refillFrom(discardPile);
         }
-        return this.deck.drawCard();
+        return deck.drawCard();
     }
 
     /**
@@ -191,7 +195,7 @@ public final class GameManagerImpl implements GameManager {
      * @param player the player drawing the card
      */
     private void drawCardForPlayer(final Player player) {
-        final Card c = this.drawDeckCard();
+        final Card c = drawDeckCard();
         if (c != null) {
             player.addCards(List.of(c));
         }

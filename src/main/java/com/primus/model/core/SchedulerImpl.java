@@ -1,33 +1,38 @@
 package com.primus.model.core;
 
-import com.primus.model.player.Player;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Implementation of the Scheduler interface to manage player turns. It supports
  * clockwise and counter-clockwise turn orders, as well as skipping turns.
  */
 public final class SchedulerImpl implements Scheduler {
-    private final List<Integer> players;
-    private int currentIndex;
+    private final List<Integer> playersIDs;
+    private int currentIndex = 0;
     private boolean isClockwise = true;
 
     /**
-     * @param players players
+     * @param playerIDs players
      */
-    public SchedulerImpl(final List<Integer> players) {
-        this.players = List.copyOf(players);
+    public SchedulerImpl(final Set<Integer> playerIDs) {
+        Objects.requireNonNull(playerIDs);
+        if (playerIDs.isEmpty()) {
+            throw new IllegalArgumentException("Zero players provided to Scheduler");
+        }
+        this.playersIDs = List.copyOf(playerIDs);
+    }
+
+    @Override
+    public int getCurrentPlayer() {
+        return this.playersIDs.get(this.currentIndex);
     }
 
     @Override
     public int nextPlayer() {
         moveIndex();
-        return players.get(currentIndex);
-    }
-
-    @Override
-    public int peekNextPlayer() {
-        return players.get(currentIndex);
+        return playersIDs.get(currentIndex);
     }
 
     @Override
@@ -45,9 +50,9 @@ public final class SchedulerImpl implements Scheduler {
      */
     private void moveIndex() {
         if (isClockwise) {
-            currentIndex = (currentIndex + 1) % players.size();
+            currentIndex = (currentIndex + 1) % playersIDs.size();
         } else {
-            currentIndex = currentIndex - 1 < 0 ? players.size() : currentIndex - 1;
+            currentIndex = currentIndex - 1 < 0 ? playersIDs.size() - 1 : currentIndex - 1;
         }
     }
 }

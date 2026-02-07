@@ -12,11 +12,6 @@ public interface Scheduler {
     int nextPlayer();
 
     /**
-     * @return the next player ID without advancing the turn order
-     */
-    int peekNextPlayer();
-
-    /**
      * Reverses the turn order direction.
      */
     void reverseDirection();
@@ -26,5 +21,8 @@ public interface Scheduler {
      */
     void skipTurn();
 
-
+    /**
+     * @return the current player ID without advancing the turn order
+     */
+    int getCurrentPlayer();
 }
