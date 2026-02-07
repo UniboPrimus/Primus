@@ -100,6 +100,7 @@ public final class GameManagerImpl implements GameManager {
 
     @Override
     public boolean executeTurn(final Card card) {
+        Objects.requireNonNull(this.activePlayer, "Cannot execute turn without an active player. Call nextPlayer() first.");
 
         // If there's an active sanction, the player must resolve instead of playing a normal turn
         if (sanctioner.isActive()) {
