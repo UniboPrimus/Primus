@@ -39,7 +39,7 @@ public final class GameManagerImpl implements GameManager {
     private Player activePlayer;
 
     /**
-     * Constructor initializes the game manager with necessary components.
+     * Constructor initialises the game manager with necessary components.
      */
     public GameManagerImpl() {
         this.deck = new PrimusDeck();
@@ -82,10 +82,8 @@ public final class GameManagerImpl implements GameManager {
 
     @Override
     public GameState getGameState() {
-        if (this.activePlayer == null) {
-            return new GameState(this.discardPile.peek(), scheduler.peekNextPlayer().getHand());
-        }
-        return new GameState(this.discardPile.peek(), this.activePlayer.getHand());
+        Objects.requireNonNull(this.activePlayer, "Active player missing, the game is probably not initialized yet");
+        return new GameState(this.discardPile.peek(), this.activePlayer.getHand(), this.activePlayer);
     }
 
     @SuppressFBWarnings(
