@@ -65,8 +65,9 @@ public final class GameManagerImpl implements GameManager {
         this.players.add(botFactory.createImplacabilis(2));
         //this.players.add(botFactory.createFallax(3, HUMAN_PLAYER));
 
-        // Create the scheduler by passing the players to it
-        this.scheduler = new SchedulerImpl(this.players);
+        // Create the scheduler by passing the players IDs to it
+        final List<Integer> playerIds = this.players.stream().map(Player::getId).toList();
+        this.scheduler = new SchedulerImpl(playerIds);
 
         // Distribute cards
         for (final Player p : this.players) {
@@ -92,7 +93,7 @@ public final class GameManagerImpl implements GameManager {
     )
     @Override
     public Player nextPlayer() {
-        this.activePlayer = scheduler.nextPlayer();
+        this.activePlayer = this.players.stream().filter((p) -> p.getId() == scheduler.nextPlayer()).findFirst().orElseThrow();
         return this.activePlayer;
     }
 
@@ -127,13 +128,8 @@ public final class GameManagerImpl implements GameManager {
     }
 
     @Override
-    public Optional<Player> getWinner() {
-        for (final Player p : players) {
-            if (p.getHand().isEmpty()) {
-                return Optional.of(p);
-            }
-        }
-        return Optional.empty();
+    public Optional<Integer> getWinner() {
+        return this.players.stream().filter((p) -> p.getHand().isEmpty()).map(Player::getId).findFirst();
     }
 
     /**

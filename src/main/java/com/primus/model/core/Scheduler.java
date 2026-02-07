@@ -7,14 +7,14 @@ import com.primus.model.player.Player;
  */
 public interface Scheduler {
     /**
-     * @return the next player by advancing the turn order.
+     * @return the next player ID by advancing the turn order.
      */
-    Player nextPlayer();
+    int nextPlayer();
 
     /**
-     * @return the next player without advancing the turn order
+     * @return the next player ID without advancing the turn order
      */
-    Player peekNextPlayer();
+    int peekNextPlayer();
 
     /**
      * Reverses the turn order direction.
@@ -25,4 +25,6 @@ public interface Scheduler {
      * Skips the next player's turn.
      */
     void skipTurn();
+
+
 }

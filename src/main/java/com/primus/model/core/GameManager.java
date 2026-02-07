@@ -26,9 +26,9 @@ public interface GameManager {
     Player nextPlayer();
 
     /**
-     * @return An {@link Optional} containing the winner player if the game is finished, empty otherwise
+     * @return An {@link Optional} containing the winner player ID if the game is finished, empty otherwise
      */
-    Optional<Player> getWinner();
+    Optional<Integer> getWinner();
 
     /**
      * Executes the turn for the current player with the chosen card.

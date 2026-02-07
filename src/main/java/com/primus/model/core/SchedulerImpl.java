@@ -8,25 +8,25 @@ import java.util.List;
  * clockwise and counter-clockwise turn orders, as well as skipping turns.
  */
 public final class SchedulerImpl implements Scheduler {
-    private final List<Player> players;
+    private final List<Integer> players;
     private int currentIndex;
     private boolean isClockwise = true;
 
     /**
      * @param players players
      */
-    public SchedulerImpl(final List<Player> players) {
+    public SchedulerImpl(final List<Integer> players) {
         this.players = List.copyOf(players);
     }
 
     @Override
-    public Player nextPlayer() {
+    public int nextPlayer() {
         moveIndex();
         return players.get(currentIndex);
     }
 
     @Override
-    public Player peekNextPlayer() {
+    public int peekNextPlayer() {
         return players.get(currentIndex);
     }
 
