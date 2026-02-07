@@ -1,7 +1,6 @@
 package com.primus.utils;
 
 import com.primus.model.deck.Card;
-import com.primus.model.player.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,8 +43,8 @@ public record GameState(
     /**
      * @return a copy of the state changing the active player ID
      */
-    public GameState withActivePlayer(final int playerId) {
-        return new GameState(this.topCard, this.activeHand, playerId);
+    public GameState withActivePlayer(final int newPlayerId) {
+        return new GameState(this.topCard, this.activeHand, newPlayerId);
     }
 
     /**

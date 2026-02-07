@@ -14,9 +14,14 @@ import com.primus.model.rules.SanctionerImpl;
 import com.primus.model.rules.ValidatorImpl;
 import com.primus.utils.GameState;
 import com.primus.utils.PlayerSetupData;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.Objects;
 // TODO aggiungere i veri import
 // import com.primus.model.player.HumanPlayer;
 
@@ -81,6 +86,7 @@ public final class GameManagerImpl implements GameManager {
         return new GameState(discardPile.peek(), getActivePlayer().getHand(), scheduler.getCurrentPlayer());
     }
 
+    @Override
     public List<PlayerSetupData> getGameSetup() {
         return players.values().stream()
                 .map(p -> new PlayerSetupData(p.getId(), !p.isBot()))
@@ -126,7 +132,7 @@ public final class GameManagerImpl implements GameManager {
 
     @Override
     public Optional<Integer> getWinner() {
-        return players.values().stream().filter((p) -> p.getHand().isEmpty()).map(Player::getId).findFirst();
+        return players.values().stream().filter(p -> p.getHand().isEmpty()).map(Player::getId).findFirst();
     }
 
     /**

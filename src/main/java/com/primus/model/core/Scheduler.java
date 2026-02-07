@@ -1,7 +1,5 @@
 package com.primus.model.core;
 
-import com.primus.model.player.Player;
-
 /**
  * Scheduler interface to manage player turns.
  */

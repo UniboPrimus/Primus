@@ -10,7 +10,7 @@ import java.util.Set;
  */
 public final class SchedulerImpl implements Scheduler {
     private final List<Integer> playersIDs;
-    private int currentIndex = 0;
+    private int currentIndex;
     private boolean isClockwise = true;
 
     /**

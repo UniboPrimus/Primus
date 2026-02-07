@@ -3,8 +3,10 @@ package com.primus.controller;
 import com.primus.model.core.GameManager;
 import com.primus.model.deck.Card;
 import com.primus.model.player.Player;
-import com.primus.utils.GameState;
+import com.primus.view.GameView;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -21,7 +23,7 @@ public final class GameControllerImpl implements GameController {
     private static final int BOT_DELAY = 1000;
 
     private final GameManager manager;
-    private final GameView view;
+    private final List<GameView> views = new ArrayList<>();
     private CompletableFuture<Card> humanInputFuture;
 
     // Flag to control the game loop, useful for stopping the game gracefully
@@ -31,23 +33,28 @@ public final class GameControllerImpl implements GameController {
      * Constructor for GameControllerImpl.
      *
      * @param manager game manager
-     * @param view    game view
      */
-    public GameControllerImpl(final GameManager manager, final GameView view) {
+    public GameControllerImpl(final GameManager manager) {
         this.manager = manager;
-        this.view = view;
     }
 
     @Override
     public void start() {
         this.isRunning = true;
         manager.init();
-        view.updateView(manager.getGameState());
+
+        for (final GameView v : views) {
+            v.initGame(manager.getGameSetup()); //TOdo li chiamo qui o nel addview
+            v.updateView(manager.getGameState());
+        }
 
         // Game Loop
         while (manager.getWinner().isEmpty() && isRunning) {
             final Player currentPlayer = manager.nextPlayer();
-            view.showCurrentPlayer(currentPlayer);
+
+            for (final GameView v : views) {
+                v.showCurrentPlayer(currentPlayer.getId());
+            }
 
             // Management of turn based on player type
             if (currentPlayer.isBot()) {
@@ -56,12 +63,19 @@ public final class GameControllerImpl implements GameController {
                 handleHumanTurn(currentPlayer);
             }
 
-            view.updateView(manager.getGameState());
+            for (final GameView v : views) {
+                v.updateView(manager.getGameState());
+            }
+
         }
 
         if (manager.getWinner().isPresent()) {
             //TODO gestire vittoria
-            view.showMessage("PARTITA TERMINATA!");
+
+            for (final GameView v : views) {
+                v.showMessage("PARTITA TERMINATA!");
+            }
+
         }
     }
 
@@ -71,6 +85,17 @@ public final class GameControllerImpl implements GameController {
         if (this.humanInputFuture != null && !this.humanInputFuture.isDone()) {
             this.humanInputFuture.cancel(true);
         }
+    }
+
+    @Override
+    public void addView(final GameView view) {
+        views.add(view);
+
+        view.setCardPlayedListener(this::humanPlayedCard);
+        view.setDrawListener(this::humanDrewCard);
+
+        //view.initGame(manager.getGameSetup());
+        //view.updateView(manager.getGameState());
     }
 
     @Override
@@ -107,7 +132,10 @@ public final class GameControllerImpl implements GameController {
             // Bot decides to draw a card
             if (intention.isEmpty()) {
                 manager.executeTurn(null);
-                view.showMessage(player.getId() + " ha pescato.");
+                for (final GameView v : views) {
+                    v.showMessage(player.getId() + " ha pescato.");
+                }
+
                 turnCompleted = true;
             } else {
                 // Bot decides to play a card
@@ -117,13 +145,17 @@ public final class GameControllerImpl implements GameController {
                 final boolean moveAccepted = manager.executeTurn(cardToPlay);
 
                 if (moveAccepted) {
-                    view.showMessage(player.getId() + " gioca " + cardToPlay);
+                    for (final GameView v : views) {
+                        v.showMessage(player.getId() + " gioca " + cardToPlay);
+                    }
                     turnCompleted = true;
                 }
                 // If move not accepted, bot must choose again
             }
         }
-        view.updateView(manager.getGameState());
+        for (final GameView v : views) {
+            v.updateView(manager.getGameState());
+        }
     }
 
     /**
@@ -135,7 +167,9 @@ public final class GameControllerImpl implements GameController {
         Objects.requireNonNull(player);
         boolean turnCompleted = false;
 
-        view.showMessage("Turno di human player");
+        for (final GameView v : views) {
+            v.showMessage("Turno di human player");
+        }
 
         while (!turnCompleted) {
             try {
@@ -150,7 +184,9 @@ public final class GameControllerImpl implements GameController {
                 if (moveAccepted) {
                     turnCompleted = true;
                 } else {
-                    view.showError("Mossa non valida! Riprova.");
+                    for (final GameView v : views) {
+                        v.showError("Mossa non valida! Riprova.");
+                    }
                     // If move not accepted, human must choose again
                 }
 
@@ -173,38 +209,6 @@ public final class GameControllerImpl implements GameController {
             Thread.sleep(GameControllerImpl.BOT_DELAY);
         } catch (final InterruptedException e) {
             Thread.currentThread().interrupt();
-        }
-    }
-
-    // Necessary development stubs, development only
-
-    public interface GameView {
-
-        void updateView(GameState gameState);
-
-        void showCurrentPlayer(Player currentPlayer);
-
-        void showMessage(String s);
-
-        void showError(String s);
-    }
-
-    private final class GameViewImpl implements GameView {
-
-        @Override
-        public void updateView(final GameState gameState) {
-        }
-
-        @Override
-        public void showCurrentPlayer(final Player currentPlayer) {
-        }
-
-        @Override
-        public void showMessage(String s) {
-        }
-
-        @Override
-        public void showError(String s) {
         }
     }
 }

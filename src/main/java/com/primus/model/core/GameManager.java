@@ -23,7 +23,8 @@ public interface GameManager {
     GameState getGameState();
 
     /**
-     * @return a list of {@link PlayerSetupData} containing the necessary information to create player instances and initialize the game.
+     * @return a list of {@link PlayerSetupData} containing the necessary information to create player
+     *     instances and initialize the game.
      */
     List<PlayerSetupData> getGameSetup();
 
@@ -33,6 +34,8 @@ public interface GameManager {
     Player nextPlayer();
 
     /**
+     * Returns the winner of the game if the game is finished.
+     *
      * @return An {@link Optional} containing the winner player ID if the game is finished, empty otherwise
      */
     Optional<Integer> getWinner();
