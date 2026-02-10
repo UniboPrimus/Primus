@@ -44,7 +44,7 @@ public final class OpponentInfoImpl implements OpponentInfo {
      */
     @Override
     public List<Card> getHand() {
-        return player.getHand();
+        return List.copyOf(player.getHand());
     }
 
     /**

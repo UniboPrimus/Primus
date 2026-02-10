@@ -1,6 +1,8 @@
 package com.primus.model.rules;
 
 import com.primus.model.deck.Card;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
@@ -9,7 +11,7 @@ import java.util.Objects;
  * This class maintains a simple integer counter to track accumulated penalties.
  */
 public final class SanctionerImpl implements Sanctioner {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(SanctionerImpl.class);
     private static final int DRAW_TWO_PENALTY = 2;
     private static final int DRAW_FOUR_PENALTY = 4;
 
@@ -43,18 +45,26 @@ public final class SanctionerImpl implements Sanctioner {
 
     /**
      * {@inheritDoc}
-     * * @implNote This implementation specifically checks for {@code DRAW_TWO} and
-     * {@code WILD_DRAW_FOUR} values. Other card types are ignored.
      *
      * @throws NullPointerException if the card is null.
+     * @implNote This implementation specifically checks for {@code DRAW_TWO} and
+     *      {@code WILD_DRAW_FOUR} values. Other card types are ignored.
      */
     @Override
     public void accumulate(final Card card) {
         Objects.requireNonNull(card);
+        LOGGER.debug("Accumulating penalty for card: " + card);
         switch (card.getValue()) {
-            case DRAW_TWO -> malusAmount += DRAW_TWO_PENALTY;
-            case WILD_DRAW_FOUR -> malusAmount += DRAW_FOUR_PENALTY;
+            case DRAW_TWO -> {
+                LOGGER.info("Penalty updated (DRAW_4): total cards to draw = " + malusAmount);
+                malusAmount += DRAW_TWO_PENALTY;
+            }
+            case WILD_DRAW_FOUR -> {
+                LOGGER.info("Penalty updated (DRAW_2): total cards to draw = " + malusAmount);
+                malusAmount += DRAW_FOUR_PENALTY;
+            }
             default -> {
+                LOGGER.info("Card ignored by Sanctioner: " + card);
             }
         }
     }
@@ -64,6 +74,7 @@ public final class SanctionerImpl implements Sanctioner {
      */
     @Override
     public void reset() {
+        LOGGER.info("Sanctioner reset. Penalty cleared (was " + malusAmount + ").");
         this.malusAmount = 0;
     }
 
