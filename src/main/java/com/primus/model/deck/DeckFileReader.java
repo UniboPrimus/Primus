@@ -30,7 +30,7 @@ public class DeckFileReader {
      * @param fileName the name of the file to read (must be in resources/ classpath).
      * @return a List of {@link Card} objects ready to be used in a Deck.
      * @throws NullPointerException     if the provided fileName is null.
-     * @throws IllegalArgumentException if the file is not found or has an invalid format (e.g. quantity <= 0).
+     * @throws IllegalArgumentException if the file is not found or has an invalid format.
      * @throws IllegalStateException    if the file cannot be read due to an I/O error or parsing failure.
      */
     public List<Card> loadDeck(final String fileName) {

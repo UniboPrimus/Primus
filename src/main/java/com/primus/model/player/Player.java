@@ -13,9 +13,10 @@ import java.util.Optional;
  */
 public interface Player {
     /**
-     * Plays a card from the player's hand.
+     * Attempts to play a card from the player's hand.
      *
-     * @return the card played by the player
+     * @return an {@code Optional} containing the card if the player is trying to play a card,
+     *      or an empty {@code Optional} if the player decides to pass the turn.
      */
     Optional<Card> playCard();
 
@@ -41,16 +42,6 @@ public interface Player {
      * @param cards the list of cards to be added to the player's hand
      */
     void addCards(List<Card> cards);
-
-    /**
-     * Passes the turn, indicating that the current player cannot play any more cards.
-     * If this method returns true, it means the player has no cards to play and skips
-     * the turn according to the classic rules. Additionally, the player must draw a card,
-     * which is provided by the {@link #addCards(List)} method.
-     *
-     * @return true if the player has no cards to play and skips the turn, false otherwise
-     */
-    boolean passTurn();
 
     /**
      * Retrieves the unique identifier of the player.

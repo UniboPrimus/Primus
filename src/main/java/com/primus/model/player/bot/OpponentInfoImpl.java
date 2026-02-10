@@ -5,6 +5,7 @@ import com.primus.model.player.Player;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Basic implementation of the {@link OpponentInfo} interface.
@@ -17,7 +18,7 @@ public final class OpponentInfoImpl implements OpponentInfo {
     /**
      * Constructs a new info wrapper for a specific player.
      *
-     * @param player the real player instance to wrap
+     * @param player the real player instance to wrap.
      */
     @SuppressFBWarnings(
             value = "EI_EXPOSE_REP2",
@@ -26,19 +27,29 @@ public final class OpponentInfoImpl implements OpponentInfo {
                     + "real-time game state changes (e.g. card counts)."
     )
     public OpponentInfoImpl(final Player player) {
+        Objects.requireNonNull(player, "Player to wrap cannot be null");
         this.player = player;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getId() {
         return player.getId();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public List<Card> getHand() {
         return player.getHand();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getCardCount() {
         return getHand().size();

@@ -14,21 +14,21 @@ public interface OpponentInfo {
     /**
      * Retrieves the unique identifier of the opponent.
      *
-     * @return the opponent's ID
+     * @return the opponent's unique ID.
      */
     int getId();
 
     /**
      * Retrieves the current hand of the opponent.
      *
-     * @return a list of cards in the opponent's hand
+     * @return a list of {@link Card} objects currently held by the opponent.
      */
     List<Card> getHand();
 
     /**
      * Gets the total number of cards currently held by the opponent.
      *
-     * @return the count of cards in hand
+     * @return the count of cards in hand.
      */
     int getCardCount();
 }

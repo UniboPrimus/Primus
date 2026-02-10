@@ -20,15 +20,6 @@ public interface Card {
     Values getValue();
 
     /**
-     * Checks if the card is black.
-     *
-     * @return true if the card is black, false otherwise
-     */
-    default boolean isBlack() {
-        return Color.isBlack(this.getColor());
-    }
-
-    /**
      * Checks if the card is natively a Wild card (Wild or Wild Draw Four),
      * regardless of its current effective color.
      * This is crucial to identify Jolly cards that have already been played/colored.

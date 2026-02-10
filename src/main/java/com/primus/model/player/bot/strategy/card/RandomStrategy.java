@@ -1,4 +1,4 @@
-package com.primus.model.player.bot;
+package com.primus.model.player.bot.strategy.card;
 
 import com.primus.model.deck.Card;
 
@@ -16,11 +16,19 @@ public final class RandomStrategy implements CardStrategy {
     private final Random random = new Random();
 
     /**
+     * Creates a new instance of the RandomStrategy.
+     */
+    public RandomStrategy() {
+        // Default constructor intentionally empty
+    }
+
+    /**
      * Chooses a card randomly from the list of possible cards.
      *
-     * @param possibleCards the list of cards the bot can choose from
-     * @return a randomly selected card from the list
-     * @throws IllegalArgumentException if the list of possible cards is empty
+     * @param possibleCards the list of cards the bot can choose from.
+     * @return an {@link Optional} containing a randomly selected card,
+     *      or {@code Optional.empty()} if the list is empty.
+     * @throws NullPointerException if {@code possibleCard} is {@code null}.
      */
     @Override
     public Optional<Card> chooseCard(final List<Card> possibleCards) {
@@ -28,7 +36,7 @@ public final class RandomStrategy implements CardStrategy {
         if (possibleCards.isEmpty()) {
             return Optional.empty();
         }
-        final Card selectedCard = possibleCards.get(random.nextInt(0, possibleCards.size()));
+        final Card selectedCard = possibleCards.get(random.nextInt(possibleCards.size()));
         return selectedCard == null ? Optional.empty() : Optional.of(selectedCard);
     }
 
