@@ -38,6 +38,10 @@ dependencies{
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     //Spotbugs annotations
     compileOnly("com.github.spotbugs:spotbugs-annotations:4.7.3")
+    // slf4j for logging
+    implementation("org.slf4j:slf4j-api:2.0.17")
+    // logback for logging
+    implementation("ch.qos.logback:logback-classic:1.5.28")
 }
 
 val test by tasks.getting(Test::class) {

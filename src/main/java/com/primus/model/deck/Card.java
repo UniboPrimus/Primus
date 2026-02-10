@@ -13,7 +13,7 @@ public interface Card {
     Color getColor();
 
     /**
-     * * Gets the value of the card.
+     * Gets the value of the card.
      *
      * @return the value of the card
      */

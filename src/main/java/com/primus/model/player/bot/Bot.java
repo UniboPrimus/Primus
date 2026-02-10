@@ -5,6 +5,8 @@ import com.primus.model.deck.Color;
 import com.primus.model.player.Player;
 import com.primus.model.player.bot.strategy.card.CardStrategy;
 import com.primus.model.player.bot.strategy.color.ColorStrategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -19,6 +21,7 @@ import java.util.Set;
  * passing turns, and managing its hand based on injected strategies.
  */
 public final class Bot implements Player {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Bot.class);
     private final int id;
     private final List<Card> hand = new ArrayList<>();
     private final Set<Card> rejectedCards = new LinkedHashSet<>();
@@ -46,16 +49,20 @@ public final class Bot implements Player {
      */
     @Override
     public Optional<Card> playCard() {
+        LOGGER.debug("Bot: " + id + " is starting turn. Current hand: " + hand);
         // The card strategy pick a card among possible moves
         final Optional<Card> chosenOpt = cardStrategy.chooseCard(calculatePossibleMoves());
         if (chosenOpt.isPresent()) {
             final Card card = chosenOpt.get();
+            LOGGER.info(id + " decided to play: " + card);
             // if the selected card is a black card decide its new color using color strategy and return it
             if (card.isNativeBlack()) {
                 final Color chosenColor = colorStrategy.chooseColor(getHand());
+                LOGGER.info(id + " selected Wild color: " + chosenColor);
                 return Optional.of(card.withColor(chosenColor));
             }
         } else { //pass turn
+            LOGGER.info(id + " has no valid moves and PASSES the turn.");
             rejectedCards.clear();
         }
         return chosenOpt;
@@ -130,8 +137,10 @@ public final class Bot implements Player {
             throw new IllegalStateException("The card validated is not present in the hand: " + cardPlayed);
         }
         if (!valid) {
+            LOGGER.info("Move refused for Bot " + id + ": " + cardPlayed);
             rejectedCards.add(cardInHand);
         } else { // If the card is valid, remove the first occurrence from the hand and end the turn
+            LOGGER.debug("Move accepted for Bot " + id);
             hand.remove(cardInHand);
             rejectedCards.clear();
         }
