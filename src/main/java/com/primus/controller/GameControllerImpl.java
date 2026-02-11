@@ -26,6 +26,8 @@ public final class GameControllerImpl implements GameController {
     private final List<GameView> views = new ArrayList<>();
     private CompletableFuture<Card> humanInputFuture;
 
+    // Flag to control the game loop, accessed from multiple threads (start/stop)
+    @SuppressWarnings("PMD.SingularField")
     private volatile boolean isRunning;
 
     /**
@@ -219,7 +221,7 @@ public final class GameControllerImpl implements GameController {
      */
     private void sleep() {
         try {
-            Thread.sleep(GameControllerImpl.BOT_DELAY);
+            Thread.sleep(BOT_DELAY);
         } catch (final InterruptedException e) {
             LOGGER.error("BOT sleep interrupted", e);
             Thread.currentThread().interrupt();

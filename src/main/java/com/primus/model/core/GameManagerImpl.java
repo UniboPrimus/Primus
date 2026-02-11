@@ -16,7 +16,6 @@ import com.primus.model.rules.ValidatorImpl;
 import com.primus.utils.GameState;
 import com.primus.utils.PlayerSetupData;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,10 +108,6 @@ public final class GameManagerImpl implements GameManager {
                 .toList();
     }
 
-    @SuppressFBWarnings(
-            value = "EI_EXPOSE_REP",
-            justification = "Player is a public API interface - intentional exposure"
-    )
     @Override
     public Player nextPlayer() {
         final int nextId = scheduler.nextPlayer();
@@ -238,7 +233,7 @@ public final class GameManagerImpl implements GameManager {
             player.addCards(List.of(c));
         } else {
             LOGGER.error("Deck is empty even after refill attempt. Player {} cannot draw.", player.getId());
-            throw new RuntimeException("Deck is empty and cannot be refilled. No cards available to draw.");
+            throw new IllegalStateException("Deck is empty and cannot be refilled. No cards available to draw.");
         }
     }
 
