@@ -20,6 +20,28 @@ public interface Card {
     Values getValue();
 
     /**
+     * Gets the number of cards the next player is forced to draw.
+     *
+     * <p>
+     * Standard rules:
+     * - DRAW_TWO cards return 2.
+     * - WILD_DRAW_FOUR cards return 4.
+     * - Others return 0. (Unless custom rules are defined)
+     * </p>
+     *
+     * @return the penalty amount (0 if none).
+     */
+    int getDrawAmount();
+
+    /**
+     * Checks if the card possesses a specific special effect.
+     *
+     * @param effect the effect to check for.
+     * @return true if the card has the specified effect.
+     */
+    boolean hasEffect(CardEffect effect);
+
+    /**
      * Checks if the card is natively a Wild card (Wild or Wild Draw Four),
      * regardless of its current effective color.
      * This is crucial to identify Jolly cards that have already been played/colored.
@@ -36,4 +58,5 @@ public interface Card {
      * @return a new Card instance with the updated color and the same value
      */
     Card withColor(Color color);
+
 }

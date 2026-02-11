@@ -6,9 +6,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Utility class responsible for parsing deck configuration files.
@@ -22,7 +24,9 @@ import java.util.Objects;
 public class DeckFileReader {
     private static final String COMMENT_PREFIX = "#";
     private static final String SEPARATOR = ",";
-    private static final int EXPECTED_PARTS = 3;
+    private static final String EFFECTS_SEPARATOR = "\\|"; // | pipe separator for multiple effects
+
+    private static final int MIN_PARTS = 3;
 
     /**
      * Parses a configuration file from the resources folder and generates a list of cards.
@@ -35,7 +39,6 @@ public class DeckFileReader {
      */
     public List<Card> loadDeck(final String fileName) {
         final List<Card> cards = new ArrayList<>();
-
         Objects.requireNonNull(fileName, "File name must not be null");
 
         try (InputStream is = getClass().getClassLoader().getResourceAsStream(fileName)) {
@@ -76,8 +79,8 @@ public class DeckFileReader {
      * @return a list containing N copies of the card.
      */
     private List<Card> parseLine(final String line) {
-        final String[] parts = line.split(SEPARATOR);
-        if (parts.length != EXPECTED_PARTS) {
+        final String[] parts = line.split(SEPARATOR, -1);
+        if (parts.length < MIN_PARTS) {
             throw new IllegalArgumentException("Invalid format expected 3 parts " + parts.length);
         }
 
@@ -92,9 +95,24 @@ public class DeckFileReader {
             throw new IllegalArgumentException("Quantity must be positive " + quantity);
         }
 
+        final Set<CardEffect> effects = EnumSet.noneOf(CardEffect.class);
+        if (parts.length > 3 && !parts[3].isBlank()) {
+            final String[] effectNames = parts[3].trim().split(EFFECTS_SEPARATOR);
+            for (final String effectName : effectNames) {
+                if (!effectName.isBlank()) {
+                    effects.add(CardEffect.valueOf(effectName.trim().toUpperCase(Locale.ROOT)));
+                }
+            }
+        }
+
+        int drawAmount = 0;
+        if (parts.length > 4 && !parts[4].isBlank()) {
+            drawAmount = Integer.parseInt(parts[4].trim());
+        }
+
         final List<Card> parsedCards = new ArrayList<>();
         for (int i = 0; i < quantity; i++) {
-            parsedCards.add(new PrimusCard(color, value));
+            parsedCards.add(new PrimusCard(color, value, drawAmount, effects));
         }
         return parsedCards;
     }
