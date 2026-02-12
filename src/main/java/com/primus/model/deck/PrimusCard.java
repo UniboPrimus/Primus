@@ -79,7 +79,7 @@ public final class PrimusCard implements Card {
      */
     @Override
     public boolean isNativeBlack() {
-        return value == Values.WILD || value == Values.WILD_DRAW_FOUR || hasEffect(CardEffect.CHANGE_COLOR);
+        return value == Values.WILD || value == Values.WILD_DRAW_FOUR;
     }
 
     /**

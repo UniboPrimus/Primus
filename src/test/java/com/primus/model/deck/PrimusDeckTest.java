@@ -139,7 +139,6 @@ class PrimusDeckTest {
         assertNotNull(wildFour, "Il mazzo deve contenere Jolly +4");
 
         assertEquals(DRAW_FOUR_AMOUNT, wildFour.getDrawAmount(), "Il +4 deve avere drawAmount = 4");
-        assertTrue(wildFour.hasEffect(CardEffect.CHANGE_COLOR), "Il +4 deve permettere il cambio colore");
         assertTrue(wildFour.hasEffect(CardEffect.SKIP_NEXT), "Il +4 deve far saltare il turno (regola standard)");
         assertTrue(wildFour.isNativeBlack(), "Il +4 deve essere nativamente nero");
     }
@@ -159,7 +158,7 @@ class PrimusDeckTest {
     @Test
     @DisplayName("Immutabilità Potenziata: withColor deve copiare anche Effetti e Potenza")
     void testWitherMaintainsDataDrivenProperties() {
-        final Set<CardEffect> effects = EnumSet.of(CardEffect.CHANGE_COLOR, CardEffect.SKIP_NEXT);
+        final Set<CardEffect> effects = EnumSet.of(CardEffect.SKIP_NEXT);
         final Card original = new PrimusCard(Color.BLACK, Values.WILD_DRAW_FOUR, DRAW_FOUR_AMOUNT, effects);
 
         final Card blueCopy = original.withColor(Color.BLUE);
