@@ -29,7 +29,7 @@ public final class ValidatorImpl implements Validator {
     public boolean isValidCard(final Card topCard, final Card toValidate) {
         Objects.requireNonNull(toValidate, "Card to validate cannot be null");
         Objects.requireNonNull(topCard, "Top card cannot be null");
-        LOGGER.debug("Checking validity for card: " + toValidate + " on top of: " + topCard);
+        LOGGER.debug("Checking validity for card: {} on top of: {}", toValidate, topCard);
         return toValidate.isNativeBlack()
                 || toValidate.getColor() == topCard.getColor()
                 || toValidate.getValue() == topCard.getValue();
@@ -44,7 +44,7 @@ public final class ValidatorImpl implements Validator {
     public boolean isValidDefense(final Card topCard, final Card toValidate) {
         Objects.requireNonNull(toValidate, "Defense card cannot be null");
         Objects.requireNonNull(topCard, "Attack card cannot be null");
-        LOGGER.debug("Checking defense for card: " + toValidate + " on top of: " + topCard);
+        LOGGER.debug("Checking defense for card: {} on top of: {}", toValidate, topCard);
         return topCard.getValue() == Values.WILD_DRAW_FOUR && toValidate.getValue() == Values.WILD_DRAW_FOUR
                 || topCard.getValue() == Values.DRAW_TWO && toValidate.getValue() == Values.DRAW_TWO;
     }

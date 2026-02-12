@@ -53,19 +53,17 @@ public final class SanctionerImpl implements Sanctioner {
     @Override
     public void accumulate(final Card card) {
         Objects.requireNonNull(card);
-        LOGGER.debug("Accumulating penalty for card: " + card);
+        LOGGER.debug("Accumulating penalty for card: {}", card);
         switch (card.getValue()) {
             case DRAW_TWO -> {
-                LOGGER.info("Penalty updated (DRAW_4): total cards to draw = " + malusAmount);
+                LOGGER.info("Penalty updated (DRAW_4): total cards to draw = {}", malusAmount);
                 malusAmount += DRAW_TWO_PENALTY;
             }
             case WILD_DRAW_FOUR -> {
-                LOGGER.info("Penalty updated (DRAW_2): total cards to draw = " + malusAmount);
+                LOGGER.info("Penalty updated (DRAW_2): total cards to draw = {}", malusAmount);
                 malusAmount += DRAW_FOUR_PENALTY;
             }
-            default -> {
-                LOGGER.info("Card ignored by Sanctioner: " + card);
-            }
+            default -> LOGGER.info("Card ignored by Sanctioner: {}", card);
         }
     }
 
@@ -74,7 +72,7 @@ public final class SanctionerImpl implements Sanctioner {
      */
     @Override
     public void reset() {
-        LOGGER.info("Sanctioner reset. Penalty cleared (was " + malusAmount + ").");
+        LOGGER.info("Sanctioner reset. Penalty cleared (was {}).", malusAmount);
         this.malusAmount = 0;
     }
 
