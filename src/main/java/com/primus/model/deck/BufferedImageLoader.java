@@ -5,13 +5,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.awt.Image;
-import java.util.Locale;
-import java.util.Map;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import javax.imageio.ImageIO;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import javax.imageio.ImageIO;
 
 /**
  * Concrete implementation of {@link ImageLoader} that loads PNG images from the classpath.
@@ -31,16 +30,35 @@ public final class BufferedImageLoader implements ImageLoader {
     private static final String PATH = "/assets/cards/";
     private final Map<String, Image> bufferedImages = new HashMap<>();
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Optional<Image> getImage(final Card card) {
-        final String key = (card.getColor().name() + "_" + card.getValue().name()).toLowerCase(Locale.ROOT);
-        final String fullPath = PATH + key + ".png";
+        final String key = card.getColor().name() + "_" + card.getValue().name();
+        return loadInternal(key);
+    }
 
-        // Return cached image if available
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Optional<Image> getBackImage() {
+        return loadInternal("BACK");
+    }
+
+    /**
+     * Internal method to load an image by key, with caching. If the image is already loaded, it returns the cached version.
+     *
+     * @param key the unique key representing the image to load
+     * @return an Optional containing the loaded Image, or empty if loading fails
+     */
+    private Optional<Image> loadInternal(final String key) {
         if (bufferedImages.containsKey(key)) {
             return Optional.of(bufferedImages.get(key));
         }
+
+        final String fullPath = PATH + key + ".png";
 
         // Load image from resources
         try (InputStream asset = getClass().getResourceAsStream(fullPath)) {
@@ -64,4 +82,5 @@ public final class BufferedImageLoader implements ImageLoader {
             return Optional.empty();
         }
     }
+
 }

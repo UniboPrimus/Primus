@@ -1,57 +1,91 @@
 package com.primus.view;
 
+import com.primus.model.deck.BufferedImageLoader;
 import com.primus.model.deck.Card;
+import com.primus.model.deck.Color;
 import com.primus.utils.GameState;
 import com.primus.utils.PlayerSetupData;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Queue;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Toolkit;
-import java.awt.event.MouseAdapter;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-import javax.swing.SwingConstants;
-import java.awt.BasicStroke;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.RenderingHints;
-import java.awt.event.MouseEvent;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Objects;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
+import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.RenderingHints;
+import java.awt.Toolkit;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.Serial;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Queue;
+import java.util.function.Consumer;
 
 /**
  * Graphical implementation of {@link GameView} using Java Swing. It provides a user interface for the Primus game,
  * displaying the players, their hands, the central table with the deck and discard pile, and status messages.
  */
 public final class PrimusGameView extends JFrame implements GameView {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(PrimusGameView.class);
+
+    // Constants for layout and sizing
     private static final float SCREEN_PERCENTAGE = 0.75F;
     private static final int START_CARDS = 7;
+    private static final int GAP_BETWEEN_CARDS = 5;
+    private static final int SCROLL_UNIT_INCREMENT = 16;
 
-    private Consumer<Card> cardPlayedListener;
-    private Runnable drawListener;
+    // Constants for fonts and styling
+    private static final int BTN_WIDTH = 100;
+    private static final int BTN_HEIGHT = 60;
+    private static final int FONT_SIZE_STD = 14;
+    private static final int BOT_CARD_W = 40;
+    private static final int BOT_CARD_H = 60;
+    private static final int TABLE_BORDER_BOT = 20;
+    private static final int TABLE_GAP = 40;
+
+    //Constants for colors
+    private static final java.awt.Color BACKGROUND_COLOR = new java.awt.Color(50, 50, 50);
+    private static final java.awt.Color COLOR_GOLD = new java.awt.Color(255, 215, 0);
+    private static final java.awt.Color TABLE_COLOR = new java.awt.Color(34, 139, 34);
+    private static final java.awt.Color TEXT_COLOR = java.awt.Color.WHITE;
+
+    //Card color constants
+    private static final java.awt.Color COLOR_RED = new java.awt.Color(220, 20, 60);
+    private static final java.awt.Color COLOR_BLUE = new java.awt.Color(0, 100, 200);
+    private static final java.awt.Color COLOR_GREEN = new java.awt.Color(34, 139, 34);
+    private static final java.awt.Color COLOR_YELLOW = new java.awt.Color(218, 165, 32);
+
+    private final transient BufferedImageLoader imageLoader = new BufferedImageLoader();
+    private transient Consumer<Card> cardPlayedListener;
+    private transient Runnable drawListener;
 
     private Integer humanPlayerID;
     private final Map<Integer, PlayerPanel> panelMap = new HashMap<>();
@@ -63,14 +97,14 @@ public final class PrimusGameView extends JFrame implements GameView {
     private final TablePanel tablePanel;
 
     /**
-     * Constuctor sets up the main game window and initializes the UI components. It configures the layout to have
+     * Constructor sets up the main game window and initializes the UI components. It configures the layout to have
      * a central table and four player panels around it, and applies a simple styling.
      */
     public PrimusGameView() {
         super("Primus - The Game");
         LOGGER.info("Initializing PrimusGameView");
 
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         // Dynamic sizing based on screen dimensions
         final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -91,7 +125,7 @@ public final class PrimusGameView extends JFrame implements GameView {
             // If we can't set the system look and feel, we just use the default one
         }
 
-        // Plauer panels
+        // Player panels
         this.playerNorth = new PlayerPanel("Bot Top", FlowLayout.CENTER);
         this.playerSouth = new PlayerPanel("Human Player", FlowLayout.CENTER);
         this.playerWest = new PlayerPanel("Bot Left", -1);
@@ -165,7 +199,6 @@ public final class PrimusGameView extends JFrame implements GameView {
      */
     private void resetPanel(final PlayerPanel p) {
         Objects.requireNonNull(p);
-
         p.setName("");
         p.updateHandBot(0);
         p.setActive(false);
@@ -186,11 +219,10 @@ public final class PrimusGameView extends JFrame implements GameView {
     @Override
     public void updateView(final GameState gameState) {
         SwingUtilities.invokeLater(() -> {
-
             final int currentId = gameState.playerId();
             LOGGER.debug("Updating view. Active Player ID: {}", currentId);
 
-            final boolean isHumanTurn = currentId == this.humanPlayerID;
+            final boolean isHumanTurn = Objects.equals(currentId, this.humanPlayerID);
 
             // Obtain the active panel based on the current player ID
             final PlayerPanel activePanel = panelMap.get(currentId);
@@ -218,7 +250,7 @@ public final class PrimusGameView extends JFrame implements GameView {
             playerWest.setActive(false);
             playerEast.setActive(false);
 
-            if (currentPlayerID == humanPlayerID) {
+            if (Objects.equals(currentPlayerID, humanPlayerID)) {
                 playerSouth.setActive(true);
             } else {
                 panelMap.get(currentPlayerID).setActive(true);
@@ -239,6 +271,70 @@ public final class PrimusGameView extends JFrame implements GameView {
         });
     }
 
+    /**
+     * Maps the card's color (which is an enum) to an actual Color object for rendering.
+     *
+     * @param enumColor the colour of the card as an enum value; expected to contain keywords like "RED", "BLUE", etc.
+     * @return the corresponding {@link Color} object for rendering the card; returns grey if the colour is unrecognised
+     */
+    private java.awt.Color mapColor(final Object enumColor) {
+        if (enumColor == null) {
+            return java.awt.Color.GRAY;
+        }
+
+        final String s = enumColor.toString().toUpperCase(Locale.ROOT);
+
+        if (s.contains("RED") || s.contains("ROSSO")) {
+            return COLOR_RED;
+        }
+        if (s.contains("BLUE") || s.contains("BLU")) {
+            return COLOR_BLUE;
+        }
+        if (s.contains("GREEN") || s.contains("VERDE")) {
+            return COLOR_GREEN;
+        }
+        if (s.contains("YELLOW") || s.contains("GIALLO")) {
+            return COLOR_YELLOW;
+        }
+        if (s.contains("BLACK") || s.contains("NERO")) {
+            return java.awt.Color.BLACK;
+        }
+
+        return java.awt.Color.GRAY;
+    }
+
+    private Color promptForColor() {
+        final Color[] options = {Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW};
+        final Color[] selection = {null};
+        final JButton[] buttons = new JButton[options.length];
+
+        for (int i = 0; i < options.length; i++) {
+            final Color c = options[i];
+            final JButton btn = new JButton(c.name());
+
+            btn.setBackground(mapColor(c));
+            btn.setForeground(TEXT_COLOR);
+            btn.setOpaque(true);
+            btn.setBorderPainted(false);
+            btn.setPreferredSize(new Dimension(BTN_WIDTH, BTN_HEIGHT));
+            btn.setFont(new Font("Arial", Font.BOLD, FONT_SIZE_STD));
+
+            btn.addActionListener(e -> {
+                selection[0] = c;
+                SwingUtilities.getWindowAncestor(btn).dispose();
+            });
+
+            buttons[i] = btn;
+        }
+
+        JOptionPane.showOptionDialog(
+                this, "Scegli un colore per il jolly:", "Jolly - Scegli Colore",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, buttons, buttons[0]
+        );
+
+        return selection[0];
+    }
+
     // Graphical components definitions
 
     /**
@@ -246,9 +342,13 @@ public final class PrimusGameView extends JFrame implements GameView {
      * It can be configured to display either the front of the cards (for the human player) or the back of the
      * cards (for the bots), and to highlight itself when it's the active player's turn.
      */
-    private class PlayerPanel extends JPanel {
+    private final class PlayerPanel extends JPanel {
+        @Serial
+        private static final long serialVersionUID = 1L;
+
         private final JLabel nameLabel;
         private final JPanel cardsContainer;
+        private final JScrollPane scrollPane;
         private final boolean isVertical;
 
         /**
@@ -256,17 +356,17 @@ public final class PrimusGameView extends JFrame implements GameView {
          *
          * @param defaultName the name to display for the player (e.g., "Player 1", "Bot 1")
          * @param flowAlign   the alignment for the card layout; if -1, a vertical layout is used
-         *                  otherwise a horizontal FlowLayout with the specified alignment
+         *                    otherwise a horizontal FlowLayout with the specified alignment
          */
         PlayerPanel(final String defaultName, final int flowAlign) {
             this.isVertical = flowAlign == -1;
             this.setLayout(new BorderLayout());
-            this.setBackground(new Color(50, 50, 50));
-            this.setBorder(new EmptyBorder(5, 5, 5, 5));
+            this.setBackground(BACKGROUND_COLOR);
+            this.setBorder(new EmptyBorder(GAP_BETWEEN_CARDS, GAP_BETWEEN_CARDS, GAP_BETWEEN_CARDS, GAP_BETWEEN_CARDS));
 
             nameLabel = new JLabel(defaultName, SwingConstants.CENTER);
-            nameLabel.setForeground(Color.WHITE);
-            nameLabel.setFont(new Font("SansSerif", Font.BOLD, 14));
+            nameLabel.setForeground(java.awt.Color.WHITE);
+            nameLabel.setFont(new Font("SansSerif", Font.BOLD, FONT_SIZE_STD));
             this.add(nameLabel, BorderLayout.NORTH);
 
             cardsContainer = new JPanel();
@@ -275,9 +375,17 @@ public final class PrimusGameView extends JFrame implements GameView {
             if (isVertical) {
                 cardsContainer.setLayout(new BoxLayout(cardsContainer, BoxLayout.Y_AXIS));
             } else {
-                cardsContainer.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+                cardsContainer.setLayout(new FlowLayout(FlowLayout.CENTER, GAP_BETWEEN_CARDS, GAP_BETWEEN_CARDS));
             }
-            this.add(cardsContainer, BorderLayout.CENTER);
+            scrollPane = new JScrollPane(cardsContainer);
+            scrollPane.setOpaque(false);
+            scrollPane.getViewport().setOpaque(false);
+            scrollPane.setBorder(null);
+
+            scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+            scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+            scrollPane.getHorizontalScrollBar().setUnitIncrement(SCROLL_UNIT_INCREMENT);
+            this.add(scrollPane, BorderLayout.CENTER);
         }
 
         /**
@@ -289,13 +397,13 @@ public final class PrimusGameView extends JFrame implements GameView {
         public void setActive(final boolean active) {
             if (active) {
                 this.setBorder(BorderFactory.createCompoundBorder(
-                        new LineBorder(new Color(255, 215, 0), 3),
+                        new LineBorder(COLOR_GOLD, 3),
                         new EmptyBorder(2, 2, 2, 2)
                 ));
-                nameLabel.setForeground(new Color(255, 215, 0));
+                nameLabel.setForeground(COLOR_GOLD);
             } else {
-                this.setBorder(new EmptyBorder(5, 5, 5, 5));
-                nameLabel.setForeground(Color.WHITE);
+                this.setBorder(new EmptyBorder(GAP_BETWEEN_CARDS, GAP_BETWEEN_CARDS, GAP_BETWEEN_CARDS, GAP_BETWEEN_CARDS));
+                nameLabel.setForeground(java.awt.Color.WHITE);
             }
         }
 
@@ -318,8 +426,19 @@ public final class PrimusGameView extends JFrame implements GameView {
                         @Override
                         public void mouseClicked(final MouseEvent e) {
                             if (cardPlayedListener != null) {
-                                LOGGER.debug("User clicked card: {}", c);
-                                cardPlayedListener.accept(c);
+                                if (c.getColor() == Color.BLACK) {
+                                    final Color newColor = promptForColor();
+                                    if (newColor != null) {
+                                        LOGGER.debug("User selected color {} for wild card", newColor);
+                                        final Card playedCard = c.withColor(newColor);
+                                        cardPlayedListener.accept(playedCard);
+                                    } else {
+                                        LOGGER.debug("User cancelled color selection for wild card");
+                                    }
+                                } else {
+                                    LOGGER.debug("User clicked card: {}", c);
+                                    cardPlayedListener.accept(c);
+                                }
                             }
                         }
                     });
@@ -327,6 +446,7 @@ public final class PrimusGameView extends JFrame implements GameView {
                 cardsContainer.add(cc);
             }
             cardsContainer.revalidate();
+            cardsContainer.repaint();
         }
 
         /**
@@ -339,11 +459,12 @@ public final class PrimusGameView extends JFrame implements GameView {
             for (int i = 0; i < count; i++) {
                 final CardComponent cc = new CardComponent(null);
                 if (isVertical) {
-                    cc.setPreferredSize(new Dimension(60, 40));
+                    cc.setPreferredSize(new Dimension(BOT_CARD_W, BOT_CARD_H));
                 }
                 cardsContainer.add(cc);
             }
             cardsContainer.revalidate();
+            cardsContainer.repaint();
         }
     }
 
@@ -351,26 +472,28 @@ public final class PrimusGameView extends JFrame implements GameView {
      * {@link JPanel} which represents the central table of the game, showing the top card of the discard pile
      * and the deck for drawing.
      */
-    private class TablePanel extends JPanel {
+    private final class TablePanel extends JPanel {
+        @Serial
+        private static final long serialVersionUID = 1L;
+
         private final JLabel statusLabel;
         private final JPanel centerZone;
         private CardComponent discardView;
-        private CardComponent deckView;
 
         TablePanel() {
             this.setLayout(new BorderLayout());
-            this.setBackground(new Color(34, 139, 34));
+            this.setBackground(TABLE_COLOR);
 
             statusLabel = new JLabel("Welcome in Primus", SwingConstants.CENTER);
-            statusLabel.setForeground(Color.WHITE);
+            statusLabel.setForeground(java.awt.Color.WHITE);
             statusLabel.setFont(new Font("SansSerif", Font.ITALIC, 16));
-            statusLabel.setBorder(new EmptyBorder(10, 0, 20, 0));
+            statusLabel.setBorder(new EmptyBorder(10, 0, TABLE_BORDER_BOT, 0));
             this.add(statusLabel, BorderLayout.SOUTH);
 
-            centerZone = new JPanel(new FlowLayout(FlowLayout.CENTER, 40, 40));
+            centerZone = new JPanel(new FlowLayout(FlowLayout.CENTER, TABLE_GAP, TABLE_GAP));
             centerZone.setOpaque(false);
 
-            deckView = new CardComponent(null); //Back of the card for the deck
+            final CardComponent deckView = new CardComponent(null); //Back of the card for the deck
             deckView.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             deckView.addMouseListener(new MouseAdapter() {
                 @Override
@@ -382,7 +505,7 @@ public final class PrimusGameView extends JFrame implements GameView {
                 }
             });
 
-            discardView = new CardComponent(null); // todo Vuoto inizialmente?
+            discardView = new CardComponent(null); // todo Vuoto inizialmente?------------------------------------------
 
             centerZone.add(deckView);
             centerZone.add(discardView);
@@ -418,10 +541,13 @@ public final class PrimusGameView extends JFrame implements GameView {
      * {@link JPanel} which represents a single card in the game. It can display either the front
      * of a card (with its colour and value)
      */
-    private class CardComponent extends JPanel {
+    private final class CardComponent extends JPanel {
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        private static final int HUMAN_W = 80;
+        private static final int HUMAN_H = 120;
         private final Card card;
-        private final int W = 80;
-        private final int H = 120;
 
         /**
          * Constructor for CardComponent.
@@ -430,7 +556,7 @@ public final class PrimusGameView extends JFrame implements GameView {
          */
         CardComponent(final Card card) {
             this.card = card;
-            this.setPreferredSize(new Dimension(W, H));
+            this.setPreferredSize(new Dimension(HUMAN_W, HUMAN_H));
             this.setOpaque(false);
         }
 
@@ -438,85 +564,27 @@ public final class PrimusGameView extends JFrame implements GameView {
         protected void paintComponent(final Graphics g) {
             super.paintComponent(g);
             final Graphics2D g2 = (Graphics2D) g;
-            // Enable anti-aliasing for smoother edges
+            // Enable antialiasing for smoother edges and better image quality
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+            final Image img;
 
             if (card != null) {
-
-                g2.setColor(Color.WHITE);
-                g2.fillRoundRect(0, 0, W - 1, H - 1, 12, 12);
-                g2.setColor(Color.BLACK);
-                g2.drawRoundRect(0, 0, W - 1, H - 1, 12, 12);
-
-                g2.setColor(mapColor(card.getColor()));
-                g2.fillRoundRect(6, 6, W - 13, H - 13, 8, 8);
-
-                g2.setColor(Color.WHITE);
-                g2.setFont(new Font("Arial", Font.BOLD, 28));
-
-                final String val = formatValue(card.getValue());
-                final FontMetrics fm = g2.getFontMetrics();
-                final int txtW = fm.stringWidth(val);
-                final int txtH = fm.getAscent();
-
-                g2.drawString(val, (W - txtW) / 2, (H + txtH) / 2 - 4);
-
-                g2.setFont(new Font("Arial", Font.BOLD, 12));
-                g2.drawString(val, 10, 20);
-
+                img = imageLoader.getImage(card).orElse(null);
             } else {
-                g2.setColor(new Color(60, 60, 60));
-                g2.fillRoundRect(0, 0, W - 1, H - 1, 12, 12);
-                g2.setColor(Color.WHITE);
-                g2.setStroke(new BasicStroke(2));
-                g2.drawRoundRect(0, 0, W - 1, H - 1, 12, 12);
-                g2.drawOval(W / 4, H / 4, W / 2, H / 2);
+                img = imageLoader.getBackImage().orElse(null);
             }
-        }
 
-        /**
-         * Maps the card's color (which is an enum) to an actual Color object for rendering.
-         *
-         * @param enumColor the colour of the card as an enum value; expected to contain keywords like "RED", "BLUE", etc.
-         * @return the corresponding {@link Color} object for rendering the card; returns grey if the
-         *                  colour is unrecognised
-         */
-        private Color mapColor(final Object enumColor) {
-            final String s = enumColor.toString().toUpperCase();
-            if (s.contains("RED") || s.contains("ROSSO")) return new Color(220, 20, 60);
-            if (s.contains("BLUE") || s.contains("BLU")) return new Color(0, 100, 200);
-            if (s.contains("GREEN") || s.contains("VERDE")) return new Color(34, 139, 34);
-            if (s.contains("YELLOW") || s.contains("GIALLO")) return new Color(218, 165, 32);
-            if (s.contains("BLACK") || s.contains("NERO")) return Color.BLACK;
-            return Color.GRAY;
-        }
-        /**
-         * Formats the card's value (which is an enum) into a string representation for display.
-         *
-         * @param enumValue the value of the card as an enum
-         * @return a string representation of the card's value for display
-         */
-        private String formatValue(final Object enumValue) {
-            final String s = enumValue.toString();
-            if (s.contains("SKIP")) return "Ø";
-            if (s.contains("REVERSE")) return "⇄";
-            if (s.contains("TWO")) return "+2";
-            if (s.contains("FOUR")) return "+4";
-            if (s.contains("WILD")) return "★";
-
-            return switch (s) {
-                case "ZERO" -> "0";
-                case "ONE" -> "1";
-                case "TWO" -> "2";
-                case "THREE" -> "3";
-                case "FOUR" -> "4";
-                case "FIVE" -> "5";
-                case "SIX" -> "6";
-                case "SEVEN" -> "7";
-                case "EIGHT" -> "8";
-                case "NINE" -> "9";
-                default -> s.substring(0, 1);
-            };
+            if (img != null) {
+                g2.drawImage(img, 0, 0, this.getWidth(), this.getHeight(), null);
+            } else {
+                if (card != null) {
+                    LOGGER.error("Missing image for card: {} {}", card.getColor(), card.getValue());
+                } else {
+                    LOGGER.error("Missing image for card back");
+                }
+            }
         }
     }
 }
