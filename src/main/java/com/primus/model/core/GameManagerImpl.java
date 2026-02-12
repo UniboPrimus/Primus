@@ -1,15 +1,16 @@
 package com.primus.model.core;
 
 import com.primus.model.deck.Card;
+import com.primus.model.deck.CardEffect;
 import com.primus.model.deck.Deck;
 import com.primus.model.deck.DropPile;
+import com.primus.model.deck.PrimusDeck;
+import com.primus.model.deck.PrimusDropPile;
 import com.primus.model.player.Player;
 import com.primus.model.player.bot.BotFactory;
 import com.primus.model.player.bot.HumanPlayer;
 import com.primus.model.rules.Sanctioner;
 import com.primus.model.rules.Validator;
-import com.primus.model.deck.PrimusDropPile;
-import com.primus.model.deck.PrimusDeck;
 import com.primus.model.player.bot.BotFactoryImpl;
 import com.primus.model.rules.SanctionerImpl;
 import com.primus.model.rules.ValidatorImpl;
@@ -245,17 +246,14 @@ public final class GameManagerImpl implements GameManager {
     private void applyCardEffects(final Card card) {
         Objects.requireNonNull(card);
 
-        switch (card.getValue()) {
-            case SKIP -> {
-                LOGGER.debug("Applying SKIP effect.");
-                scheduler.skipTurn();
-            }
-            case REVERSE -> {
-                LOGGER.debug("Applying REVERSE effect.");
-                scheduler.reverseDirection();
-            }
-            default -> {
-            }
+        if (card.hasEffect(CardEffect.SKIP_NEXT)) {
+            LOGGER.debug("Applying SKIP_NEXT effect (triggered by {})", card.getValue());
+            scheduler.skipTurn();
+        }
+
+        if (card.hasEffect(CardEffect.REVERSE_TURN)) {
+            LOGGER.debug("Applying REVERSE_TURN effect.");
+            scheduler.reverseDirection();
         }
 
         // Accumulate sanctions if the card has any effect that triggers them (e.g., Draw Two, Wild Draw Four)
