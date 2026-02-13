@@ -104,6 +104,7 @@ public final class PrimusGameView extends JFrame implements GameView {
      */
     public PrimusGameView(final ImageLoader imageLoader) {
         super("Primus - The Game");
+        Objects.requireNonNull(imageLoader);
         LOGGER.info("Initializing PrimusGameView");
 
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
