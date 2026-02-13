@@ -37,6 +37,11 @@ public final class SchedulerImpl implements Scheduler {
     }
 
     @Override
+    public List<Integer> getPlayersDisposition() {
+        return List.copyOf(this.playersIDs);
+    }
+
+    @Override
     public int nextPlayer() {
         moveIndex();
         LOGGER.debug("Turn passed to player ID: {}", playersIDs.get(currentIndex));

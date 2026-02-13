@@ -113,8 +113,11 @@ public final class GameManagerImpl implements GameManager {
 
     @Override
     public List<PlayerSetupData> getGameSetup() {
-        return players.values().stream()
-                .map(p -> new PlayerSetupData(p.getId(), p.getName(), !p.isBot()))
+        return scheduler.getPlayersDisposition().stream()
+                .map(id -> {
+                    final Player p = players.get(id);
+                    return new PlayerSetupData(p.getId(), p.getName(), !p.isBot());
+                })
                 .toList();
     }
 
