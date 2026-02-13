@@ -1,8 +1,8 @@
 package com.primus.view;
 
-import com.primus.model.deck.BufferedImageLoader;
 import com.primus.model.deck.Card;
 import com.primus.model.deck.Color;
+import com.primus.model.deck.ImageLoader;
 import com.primus.utils.GameState;
 import com.primus.utils.PlayerSetupData;
 import org.slf4j.Logger;
@@ -83,7 +83,7 @@ public final class PrimusGameView extends JFrame implements GameView {
     private static final java.awt.Color COLOR_GREEN = new java.awt.Color(34, 139, 34);
     private static final java.awt.Color COLOR_YELLOW = new java.awt.Color(218, 165, 32);
 
-    private final transient BufferedImageLoader imageLoader = new BufferedImageLoader();
+    private final transient ImageLoader imageLoader;
     private transient Consumer<Card> cardPlayedListener;
     private transient Runnable drawListener;
 
@@ -100,11 +100,13 @@ public final class PrimusGameView extends JFrame implements GameView {
      * Constructor sets up the main game window and initializes the UI components. It configures the layout to have
      * a central table and four player panels around it, and applies a simple styling.
      */
-    public PrimusGameView() {
+    public PrimusGameView(final ImageLoader imageLoader) {
         super("Primus - The Game");
         LOGGER.info("Initializing PrimusGameView");
 
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        this.imageLoader = imageLoader;
 
         // Dynamic sizing based on screen dimensions
         final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
