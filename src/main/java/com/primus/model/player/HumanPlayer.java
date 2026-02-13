@@ -1,8 +1,7 @@
-package com.primus.model.player.bot;
+package com.primus.model.player;
 
 import com.primus.model.deck.Card;
 import com.primus.model.deck.Color;
-import com.primus.model.player.Player;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

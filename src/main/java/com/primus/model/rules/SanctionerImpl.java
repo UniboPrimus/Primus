@@ -45,8 +45,6 @@ public final class SanctionerImpl implements Sanctioner {
      * {@inheritDoc}
      *
      * @throws NullPointerException if the card is null.
-     * @implNote This implementation specifically checks for {@code DRAW_TWO} and
-     *      {@code WILD_DRAW_FOUR} values. Other card types are ignored.
      */
     @Override
     public void accumulate(final Card card) {

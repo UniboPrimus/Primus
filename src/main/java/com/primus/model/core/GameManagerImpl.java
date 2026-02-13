@@ -8,7 +8,7 @@ import com.primus.model.deck.PrimusDeck;
 import com.primus.model.deck.PrimusDropPile;
 import com.primus.model.player.Player;
 import com.primus.model.player.bot.BotFactory;
-import com.primus.model.player.bot.HumanPlayer;
+import com.primus.model.player.HumanPlayer;
 import com.primus.model.rules.Sanctioner;
 import com.primus.model.rules.Validator;
 import com.primus.model.player.bot.BotFactoryImpl;
