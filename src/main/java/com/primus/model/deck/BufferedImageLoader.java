@@ -5,11 +5,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.awt.Image;
+import java.util.Map;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.concurrent.ThreadSafe;
 import javax.imageio.ImageIO;
 
 /**
@@ -20,15 +21,23 @@ import javax.imageio.ImageIO;
  * <ul>
  *     <li>Loads images from {@code /assets/cards/} directory</li>
  *     <li>Uses PNG format exclusively</li>
+ *     <li>Uses {@link ConcurrentHashMap} to ensure thread-safety without blocking reads</li>
  *     <li>Caches loaded images in memory for better performance</li>
  * </ul>
- * </p>
  */
+@ThreadSafe
 public final class BufferedImageLoader implements ImageLoader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BufferedImageLoader.class);
     private static final String PATH = "/assets/cards/";
-    private final Map<String, Image> bufferedImages = new HashMap<>();
+    private final Map<String, Image> bufferedImages = new ConcurrentHashMap<>();
+
+    /**
+     * Creates a new instance of BufferedImageLoader.
+     */
+    public BufferedImageLoader() {
+        // Default constructor intentionally empty
+    }
 
     /**
      * {@inheritDoc}
@@ -54,8 +63,10 @@ public final class BufferedImageLoader implements ImageLoader {
      * @return an Optional containing the loaded Image, or empty if loading fails
      */
     private Optional<Image> loadInternal(final String key) {
-        if (bufferedImages.containsKey(key)) {
-            return Optional.of(bufferedImages.get(key));
+        // Check cache first
+        final Image cached = bufferedImages.get(key);
+        if (cached != null) {
+            return Optional.of(cached);
         }
 
         final String fullPath = PATH + key + ".png";
@@ -73,9 +84,12 @@ public final class BufferedImageLoader implements ImageLoader {
                 return Optional.empty();
             }
 
-            bufferedImages.put(key, image);
+            // Atomically insert if absent, or get existing value if another thread already loaded it
+            final Image existing = bufferedImages.putIfAbsent(key, image);
+            final Image result = existing != null ? existing : image;
+
             LOGGER.debug("Successfully loaded and cached image: {}", fullPath);
-            return Optional.of(image);
+            return Optional.of(result);
 
         } catch (final IOException e) {
             LOGGER.error("IOException while loading image: {}", fullPath, e);
