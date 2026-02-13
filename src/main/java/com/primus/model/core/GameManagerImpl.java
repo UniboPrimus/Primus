@@ -87,12 +87,14 @@ public final class GameManagerImpl implements GameManager {
         for (final Player p : players.values()) {
             for (int i = 0; i < CARD_NUMBER; i++) {
                 final Card c = drawDeckCard();
-                p.addCards(List.of(c));
+                if (c != null) {
+                    p.addCards(List.of(c));
+                }
             }
         }
 
         // Draw the start card
-        final Card startCard = drawDeckCard();
+        final Card startCard = deck.drawStartCard();
         discardPile.addCard(startCard);
         LOGGER.info("Game initialized. Start card: {}", startCard);
     }

@@ -62,6 +62,34 @@ public final class PrimusDeck implements Deck {
     }
 
     @Override
+    public Card drawStartCard() {
+        if (this.cards.isEmpty()) {
+            throw new IllegalStateException("Deck is empty, call the refillFrom() method before drawing");
+        }
+        for (int i = 0; i < cards.size(); i++) {
+            final Card candidate = cards.get(i);
+
+            if (isSafeStartCard(candidate)) {
+                return cards.remove(i);
+            }
+        }
+        return cards.remove(0);
+    }
+
+    private boolean isSafeStartCard(final Card card) {
+        if (card.isNativeBlack()) {
+            return false;
+        }
+        if (card.getDrawAmount() > 0) {
+            return false;
+        }
+        final boolean isActionValue = card.getValue() == Values.SKIP || card.getValue() == Values.REVERSE;
+        final boolean hasActionEffect = card.hasEffect(CardEffect.SKIP_NEXT) || card.hasEffect(CardEffect.REVERSE_TURN);
+
+        return !isActionValue && !hasActionEffect;
+    }
+
+    @Override
     public void refillFrom(final DropPile discardPile) {
         Objects.requireNonNull(discardPile, "DropPile cannot be null");
         final List<Card> recycledCards = discardPile.extractAllExceptTop();

@@ -31,6 +31,14 @@ public interface Deck {
     Card drawCard();
 
     /**
+     * Draws the starting card for the game, ensuring it is not a Wild card.
+     * This method is used to determine the initial card on the discard pile at the start of the game.
+     *
+     * @return the drawn starting card, guaranteed to be a non-Wild card
+     */
+    Card drawStartCard();
+
+    /**
      * Refills the deck from the given drop pile.
      * When the deck is empty but the game is still ongoing
      *
