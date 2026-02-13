@@ -58,7 +58,10 @@ public final class GameControllerImpl implements GameController {
 
             LOGGER.debug("Starting turn for player with ID: {}", currentPlayer.getId());
 
-            views.forEach(v -> v.showCurrentPlayer(currentPlayer.getId()));
+            views.forEach(v -> {
+                v.showCurrentPlayer(currentPlayer.getId());
+                v.updateView(manager.getGameState());
+            });
 
             // Management of turn based on player type
             if (currentPlayer.isBot()) {

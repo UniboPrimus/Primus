@@ -234,9 +234,9 @@ public final class PrimusGameView extends JFrame implements GameView {
 
             if (activePanel != null) {
                 if (isHumanTurn) {
-                    activePanel.updateHand(gameState.activeHand(), true);
+                    activePanel.updateHand(gameState.humanHand(), true);
                 } else {
-                    activePanel.updateHandBot(gameState.activeHand().size());
+                    activePanel.updateHandBot(gameState.humanHand().size());
                 }
             } else {
                 LOGGER.error("Received update for unknown Player ID: {}", currentId);

@@ -108,7 +108,23 @@ public final class GameManagerImpl implements GameManager {
 
     @Override
     public GameState getGameState() {
-        return new GameState(discardPile.peek(), getActivePlayer().getHand(), scheduler.getCurrentPlayer());
+        final Map<Integer, Integer> cardCounts = new HashMap<>();
+
+        players.values().forEach(player -> cardCounts.put(player.getId(), player.getHand().size()));
+
+        final List<Card> humanCards = players.values().stream()
+                .filter(p -> !p.isBot())
+                .findFirst()
+                .map(Player::getHand)
+                .orElse(List.of());
+
+        return new GameState(
+                discardPile.peek(),
+                humanCards,
+                cardCounts,
+                scheduler.getCurrentPlayer(),
+                sanctioner.isActive()
+        );
     }
 
     @Override

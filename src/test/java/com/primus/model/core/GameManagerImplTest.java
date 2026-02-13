@@ -152,13 +152,13 @@ class GameManagerImplTest {
     @DisplayName("Test GameState Consistency")
     void testGameStateConsistency() {
         final GameState stateBeforeStart = gameManager.getGameState();
-        assertNotNull(stateBeforeStart.activeHand(), "Player deck should not be null");
-        assertFalse(stateBeforeStart.activeHand().isEmpty(), "Player deck should not be empty at game start");
+        assertNotNull(stateBeforeStart.humanHand(), "Player deck should not be null");
+        assertFalse(stateBeforeStart.humanHand().isEmpty(), "Player deck should not be empty at game start");
 
         final Player p1 = gameManager.nextPlayer();
         final GameState stateAfterNext = gameManager.getGameState();
 
-        assertEquals(p1.getHand().size(), stateAfterNext.activeHand().size(),
+        assertEquals(p1.getHand().size(), stateAfterNext.humanHand().size(),
                 "Player deck size should match current player's hand size");
     }
 
