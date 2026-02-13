@@ -43,7 +43,6 @@ public final class GameControllerImpl implements GameController {
     public void start() {
         LOGGER.info("Starting GameController");
         this.isRunning = true;
-        manager.init();
         LOGGER.debug("GameManager initialized");
 
         views.forEach(v -> {
