@@ -4,6 +4,7 @@ import com.primus.model.deck.Card;
 import com.primus.model.deck.CardEffect;
 import com.primus.model.deck.Deck;
 import com.primus.model.deck.DropPile;
+import com.primus.model.deck.GameEvent;
 import com.primus.model.deck.PrimusDeck;
 import com.primus.model.deck.PrimusDropPile;
 import com.primus.model.player.Player;
@@ -41,6 +42,7 @@ public final class GameManagerImpl implements GameManager {
     private Deck deck;
     private DropPile discardPile;
     private Scheduler scheduler;
+    private GameEvent currentEvent; //NOPMD - This field is necessary to keep track of the current game event
 
     /**
      * Constructor initialises the game manager with necessary components.
@@ -57,9 +59,14 @@ public final class GameManagerImpl implements GameManager {
     public void init() {
         LOGGER.info("Initializing Game Manager");
 
+        currentEvent = GameEvent.getRandomEvent();
+        LOGGER.info("Selected Game Event: {} - {}", currentEvent, currentEvent.getDescription());
+
         discardPile = new PrimusDropPile();
-        deck = new PrimusDeck();
-        deck.init();
+        final PrimusDeck primusDeck = new PrimusDeck();
+        primusDeck.setGameEvent(this.currentEvent);
+        primusDeck.init();
+        this.deck = primusDeck;
         players.clear();
         sanctioner.reset();
         final BotFactory botFactory = new BotFactoryImpl();

@@ -17,26 +17,15 @@ import java.util.Objects;
 public final class PrimusDeck implements Deck {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PrimusDeck.class);
-    private static final String DEFAULT_CONFIG = "standard_deck.csv";
-    private final String configFileName;
+    private String configFileName;
     private final List<Card> cards;
 
     /**
      * Constructs a PrimusDeck with the default configuration file.
      */
     public PrimusDeck() {
-        this(DEFAULT_CONFIG);
-    }
-
-    /**
-     * Constructs a PrimusDeck with the specified configuration file.
-     *
-     * @param configFileName the name of the configuration file to load the deck from (Events)
-     */
-    public PrimusDeck(final String configFileName) {
-        this.configFileName = Objects.requireNonNull(configFileName, "config file cannot be null");
+        this.configFileName = GameEvent.STANDARD.getFileName();
         this.cards = new ArrayList<>();
-        init();
     }
 
     @Override
@@ -58,6 +47,17 @@ public final class PrimusDeck implements Deck {
             LOGGER.error("Failed to initialize deck from file: {}", this.configFileName, e);
             throw new IllegalStateException("Failed to initialize deck", e);
         }
+    }
+
+    /**
+     * Sets the current game event and updates the deck configuration accordingly.
+     *
+     * @param event the GameEvent to set for this deck
+     */
+    public void setGameEvent(final GameEvent event) {
+        Objects.requireNonNull(event, "GameEvent cannot be null");
+        this.configFileName = event.getFileName();
+        LOGGER.info("Deck configuration set to event: {} (file: {})", event.getDescription(), this.configFileName);
     }
 
     @Override
