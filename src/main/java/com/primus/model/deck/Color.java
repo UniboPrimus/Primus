@@ -5,10 +5,15 @@ package com.primus.model.deck;
  */
 
 public enum Color {
+    /** Red color for cards. */
     RED,
+    /** Blue color for cards. */
     BLUE,
+    /** Green color for cards. */
     GREEN,
+    /** Yellow color for cards. */
     YELLOW,
+    /** Black color for special cards. */
     BLACK;
 
     /**

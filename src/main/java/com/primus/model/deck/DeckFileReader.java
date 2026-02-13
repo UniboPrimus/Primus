@@ -35,6 +35,13 @@ public class DeckFileReader {
     private static final int MIN_PARTS = 3;
 
     /**
+     * Default constructor for DeckFileReader.
+     */
+    public DeckFileReader() {
+        //Empty constructor
+    }
+
+    /**
      * Parses a configuration file from the resources folder and generates a list of cards.
      *
      * @param fileName the name of the file to read (must be in resources/ classpath).
@@ -42,6 +49,7 @@ public class DeckFileReader {
      * @throws NullPointerException     if the provided fileName is null.
      * @throws IllegalArgumentException if the file is not found or has an invalid format.
      * @throws IllegalStateException    if the file cannot be read due to an I/O error or parsing failure.
+     * @throws IOException              if an I/O error occurs while reading the file.
      */
     public List<Card> loadDeck(final String fileName) throws IOException {
         final List<Card> cards = new ArrayList<>();
