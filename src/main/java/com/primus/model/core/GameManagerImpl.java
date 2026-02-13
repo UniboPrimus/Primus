@@ -72,7 +72,7 @@ public final class GameManagerImpl implements GameManager {
         final BotFactory botFactory = new BotFactoryImpl();
 
         // Create players and add them to the map using their own ID as key
-        final Player humanPlayer = new HumanPlayer(1);
+        final Player humanPlayer = new HumanPlayer(1, "You");
         players.put(humanPlayer.getId(), humanPlayer);
 
         final Player bot1 = botFactory.createFortuitus(2);
@@ -114,7 +114,7 @@ public final class GameManagerImpl implements GameManager {
     @Override
     public List<PlayerSetupData> getGameSetup() {
         return players.values().stream()
-                .map(p -> new PlayerSetupData(p.getId(), !p.isBot()))
+                .map(p -> new PlayerSetupData(p.getId(), p.getName(), !p.isBot()))
                 .toList();
     }
 

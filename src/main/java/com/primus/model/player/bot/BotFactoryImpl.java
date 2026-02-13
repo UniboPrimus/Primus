@@ -27,7 +27,7 @@ public final class BotFactoryImpl implements BotFactory {
      */
     @Override
     public Player createFortuitus(final int id) {
-        return new Bot(id, new RandomStrategy(), new RandomColorStrategy());
+        return new Bot(id, "Fortuitus", new RandomStrategy(), new RandomColorStrategy());
     }
 
     /**
@@ -36,7 +36,7 @@ public final class BotFactoryImpl implements BotFactory {
      */
     @Override
     public Player createImplacabilis(final int id) {
-        return new Bot(id, new AggressiveStrategy(), new MostFrequentColorStrategy());
+        return new Bot(id, "Implacabilis", new AggressiveStrategy(), new MostFrequentColorStrategy());
     }
 
     /**
@@ -48,6 +48,6 @@ public final class BotFactoryImpl implements BotFactory {
     @Override
     public Player createFallax(final int id, final Player victim) {
         Objects.requireNonNull(victim, "Victim player cannot be null for Fallax bot");
-        return new Bot(id, new CheaterStrategy(new OpponentInfoImpl(victim)), new MostFrequentColorStrategy());
+        return new Bot(id, "Fallax", new CheaterStrategy(new OpponentInfoImpl(victim)), new MostFrequentColorStrategy());
     }
 }

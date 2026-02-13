@@ -26,7 +26,7 @@ class BotTest {
 
     @BeforeEach
     void setUp() {
-        bot = new Bot(1, possibleCards -> possibleCards.stream().findFirst(), hand -> Color.RED);
+        bot = new Bot(1, "Test", possibleCards -> possibleCards.stream().findFirst(), hand -> Color.RED);
     }
 
     @Test
@@ -36,7 +36,7 @@ class BotTest {
 
     @Test
     void testEquals() {
-        final Bot temp = new Bot(1, new RandomStrategy(), new RandomColorStrategy());
+        final Bot temp = new Bot(1, "Test", new RandomStrategy(), new RandomColorStrategy());
         assertEquals(temp, bot, "Bot with same id should be equals ");
     }
 

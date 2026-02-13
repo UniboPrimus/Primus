@@ -24,14 +24,18 @@ public final class HumanPlayer implements Player {
 
     private final List<Card> hand = new ArrayList<>();
     private final int id;
+    private final String name;
 
     /**
      * Constructor for HumanPlayer.
      *
      * @param id the unique identifier for the player
+     * @param name the name of the player
      */
-    public HumanPlayer(final int id) {
+    public HumanPlayer(final int id, final String name) {
+        Objects.requireNonNull(name);
         this.id = id;
+        this.name = name;
         LOGGER.debug("HumanPlayer created with ID: {}", id);
     }
 
@@ -62,6 +66,11 @@ public final class HumanPlayer implements Player {
     @Override
     public int getId() {
         return id;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override

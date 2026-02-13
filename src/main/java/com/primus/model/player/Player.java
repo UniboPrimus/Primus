@@ -51,6 +51,13 @@ public interface Player {
     int getId();
 
     /**
+     * Retrieves the name of the player.
+     *
+     * @return the name of the player
+     */
+    String getName();
+
+    /**
      * Notifies the player about the outcome of the last card played.
      * This method allows the bot to update its internal state (e.g., memory of rejected cards)
      * or to finalize the turn (e.g., removing the card from hand if valid).

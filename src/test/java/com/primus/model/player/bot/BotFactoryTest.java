@@ -65,7 +65,7 @@ class BotFactoryTest {
     @Test
     void testCreateFallax() throws NoSuchFieldException, IllegalAccessException {
         final int botId = 66;
-        final Player victim = new HumanPlayer(1);
+        final Player victim = new HumanPlayer(1, "You");
         final Player player = factory.createFallax(botId, victim);
         assertTrue(player instanceof Bot, "Factory should return a Bot instance for Fallax");
         final Bot bot = (Bot) player;

@@ -23,6 +23,7 @@ import java.util.Set;
 public final class Bot implements Player {
     private static final Logger LOGGER = LoggerFactory.getLogger(Bot.class);
     private final int id;
+    private final String name;
     private final List<Card> hand = new ArrayList<>();
     private final Set<Card> rejectedCards = new LinkedHashSet<>();
     private final CardStrategy cardStrategy;
@@ -34,10 +35,13 @@ public final class Bot implements Player {
      * @param id            the unique identifier.
      * @param cardStrategy  the logic to select cards.
      * @param colorStrategy the logic to select colors for Wild cards.
+     * @param name          the name of the bot.
      * @throws NullPointerException if any strategy is null.
      */
-    public Bot(final int id, final CardStrategy cardStrategy, final ColorStrategy colorStrategy) {
+    public Bot(final int id, final String name, final CardStrategy cardStrategy, final ColorStrategy colorStrategy) {
+        Objects.requireNonNull(name);
         this.id = id;
+        this.name = name;
         this.cardStrategy = Objects.requireNonNull(cardStrategy);
         this.colorStrategy = Objects.requireNonNull(colorStrategy);
     }
@@ -112,6 +116,11 @@ public final class Bot implements Player {
     @Override
     public int getId() {
         return id;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     /**
