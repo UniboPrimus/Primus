@@ -86,6 +86,7 @@ public final class PrimusGameView extends JFrame implements GameView {
 
     private final transient ImageLoader imageLoader;
     private transient Consumer<Card> cardPlayedListener;
+    private transient Consumer<Boolean> newMatchListener;
     private transient Runnable drawListener;
 
     private Integer humanPlayerID;
@@ -229,6 +230,13 @@ public final class PrimusGameView extends JFrame implements GameView {
     }
 
     @Override
+    public void setNewMatchListener(final Consumer<Boolean> listener) {
+        Objects.requireNonNull(listener);
+        newMatchListener = listener;
+        LOGGER.debug("NewMatchListener registered");
+    }
+
+    @Override
     public void updateView(final GameState gameState) {
         SwingUtilities.invokeLater(() -> {
             Objects.requireNonNull(gameState);
@@ -286,20 +294,6 @@ public final class PrimusGameView extends JFrame implements GameView {
         });
     }
 
-    /**
-     * Method to display the winner of the game in a dialog box.
-     *
-     * @param winnerName the name of the winning player to be displayed in the message
-     */
-    public void showWinner(final String winnerName) {
-        SwingUtilities.invokeLater(() -> {
-            final String msg = "Game Over! Winner: " + winnerName;
-            JOptionPane.showMessageDialog(this, msg, "Game Over", JOptionPane.INFORMATION_MESSAGE);
-            LOGGER.info("Game ended. Winner: {}", winnerName);
-            //TODO add option to start a new game or exit (MAYBE)
-        });
-    }
-
     @Override
     public void showMessage(final String message) {
         SwingUtilities.invokeLater(() -> {
@@ -314,6 +308,31 @@ public final class PrimusGameView extends JFrame implements GameView {
             Objects.requireNonNull(errorMessage);
             LOGGER.warn("Showing UI Error: {}", errorMessage);
             JOptionPane.showMessageDialog(this, errorMessage, "Attention", JOptionPane.WARNING_MESSAGE);
+        });
+    }
+
+    @Override
+    public void showGameOverMessage(final String winnerName) {
+        SwingUtilities.invokeLater(() -> {
+            Objects.requireNonNull(winnerName);
+            final Object[] options = {"Nuova Partita", "Esci dal Gioco"};
+            final int choice = JOptionPane.showOptionDialog(
+                    this,
+                    "La partita è terminata!\nIl vincitore è: " + winnerName + "\n\nCosa vuoi fare?",
+                    "Fine Partita",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.INFORMATION_MESSAGE,
+                    null,
+                    options,
+                    options[0]
+            );
+
+            if (newMatchListener != null) {
+                LOGGER.debug("User selected option {} in game over dialog", choice);
+                // If choice is 0, the user wants to start a new match; any other choice, including closing the
+                // dialog is treated as exiting the game
+                newMatchListener.accept(choice == 0);
+            }
         });
     }
 

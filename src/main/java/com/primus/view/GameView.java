@@ -36,6 +36,15 @@ public interface GameView {
     void setDrawListener(Runnable listener);
 
     /**
+     * Links a listener for the new match event, in particular when a player wants to start a new match after the
+     * current game has ended, or when they want to exit the game.
+     *
+     * @param listener a Consumer that accepts a Boolean which is {@code true} if the user wants to start a new
+     *                 match, and {@code false} if the user wants to exit the game
+     */
+    void setNewMatchListener(Consumer<Boolean> listener);
+
+    /**
      * Updates the view to reflect the current game state. This method should be called by the controller
      * after any change in the game state (e.g., after a player plays a card, draws a card, or at the end of a turn)
      *
@@ -65,4 +74,11 @@ public interface GameView {
      * @param errorMessage the text of the error message to be displayed
      */
     void showError(String errorMessage);
+
+    /**
+     * Displays a game over message to the user, indicating that the game has ended and announcing the winner.
+     *
+     * @param winnerName the name of the winning player, to be included in the game over message displayed to the user.
+     */
+    void showGameOverMessage(String winnerName);
 }

@@ -3,6 +3,7 @@ package com.primus.controller;
 import com.primus.model.core.GameManager;
 import com.primus.model.deck.Card;
 import com.primus.model.player.Player;
+import com.primus.utils.PlayerSetupData;
 import com.primus.view.GameView;
 
 import org.slf4j.Logger;
@@ -28,6 +29,7 @@ public final class GameControllerImpl implements GameController {
     private final GameManager manager;
     private final List<GameView> views = new ArrayList<>();
     private CompletableFuture<Card> humanInputFuture;
+    private CompletableFuture<Boolean> playAgainFuture;
 
     // Flag to control the game loop, accessed from multiple threads (start/stop)
     @SuppressWarnings("PMD.SingularField")
@@ -48,43 +50,75 @@ public final class GameControllerImpl implements GameController {
         this.isRunning = true;
         LOGGER.debug("GameManager initialized");
 
-        manager.init();
-
-        views.forEach(v -> {
-            v.initGame(manager.getGameSetup());
-            v.updateView(manager.getGameState());
-        });
-
-        LOGGER.info("Game loop is starting");
-
-        // Game Loop
-        while (manager.getWinner().isEmpty() && isRunning) {
-            final Player currentPlayer = manager.nextPlayer();
-
-            LOGGER.debug("Starting turn for player with ID: {}", currentPlayer.getId());
+        while (isRunning) {
+            manager.init();
 
             views.forEach(v -> {
-                v.showCurrentPlayer(currentPlayer.getId());
+                v.initGame(manager.getGameSetup());
                 v.updateView(manager.getGameState());
             });
 
-            // Management of turn based on player type
-            if (currentPlayer.isBot()) {
-                handleBotTurn(currentPlayer);
-            } else {
-                handleHumanTurn(currentPlayer);
+            LOGGER.info("Game loop is starting");
+
+            // Game Loop
+            while (manager.getWinner().isEmpty() && isRunning) {
+                final Player currentPlayer = manager.nextPlayer();
+
+                LOGGER.debug("Starting turn for player with ID: {}", currentPlayer.getId());
+
+                views.forEach(v -> {
+                    v.showCurrentPlayer(currentPlayer.getId());
+                    v.updateView(manager.getGameState());
+                });
+
+                // Management of turn based on player type
+                if (currentPlayer.isBot()) {
+                    handleBotTurn(currentPlayer);
+                } else {
+                    handleHumanTurn(currentPlayer);
+                }
+
+                views.forEach(v -> v.updateView(manager.getGameState()));
+
             }
 
-            views.forEach(v -> v.updateView(manager.getGameState()));
+            // If the game was forcefully stopped, exit immediately
+            if (!isRunning) {
+                LOGGER.info("Game loop was stopped before completion. Exiting...");
+                break;
+            }
 
-        }
+            if (manager.getWinner().isPresent()) {
+                final int winnerId = manager.getWinner().get();
 
-        if (manager.getWinner().isPresent()) {
-            //TODO gestire vittoria
-            LOGGER.info("Game ended. Winner: {}", manager.getWinner().get());
-            views.forEach(v -> v.showMessage("PARTITA TERMINATA!"));
-        } else {
-            LOGGER.warn("Game ended without a winner");
+                // Try to get the winner's name from the game setup, fallback to "Giocatore {ID}" if not found
+                final String winnerName = manager.getGameSetup().stream().filter(p -> p.id() == winnerId)
+                        .map(PlayerSetupData::name).findFirst().orElse("Giocatore " + winnerId);
+
+                LOGGER.info("Game ended. Winner: {} ({})", winnerName, winnerId);
+
+                // After the game ends, ask the user if they want to play again or exit.
+                // This is done asynchronously to avoid blocking the UI thread.
+                this.playAgainFuture = new CompletableFuture<>();
+                views.forEach(v -> v.showGameOverMessage(winnerName));
+
+                try {
+                    final boolean wantsToPlayAgain = this.playAgainFuture.get();
+
+                    if (!wantsToPlayAgain) {
+                        LOGGER.info("User chose to quit the game.");
+                        this.isRunning = false;
+                    } else {
+                        LOGGER.info("User chose to play again. Restarting game loop...");
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    LOGGER.error("Error while waiting for game over choice", e);
+                    Thread.currentThread().interrupt();
+                    this.isRunning = false;
+                }
+            } else {
+                LOGGER.warn("Game ended without a winner");
+            }
         }
     }
 
@@ -104,8 +138,26 @@ public final class GameControllerImpl implements GameController {
 
         view.setCardPlayedListener(this::onCardPlayed);
         view.setDrawListener(this::onDrawCard);
+        view.setNewMatchListener(this::onNewMatchRequested);
 
         LOGGER.debug("New view added to controller");
+    }
+
+    /**
+     * Callback invoked when the human player requests to start a new match or exit after the current game has ended.
+     *
+     * @param startNew a Boolean which is {@code true} if the user wants to start a new match, and {@code false} if the
+     *                user wants to exit the game
+     */
+    private void onNewMatchRequested(final Boolean startNew) {
+        Objects.requireNonNull(startNew);
+        LOGGER.debug("Callback View: Human player wants to {} now", startNew ? "start a new match" : "exit");
+
+        if (this.playAgainFuture != null && !this.playAgainFuture.isDone()) {
+            this.playAgainFuture.complete(startNew);
+        } else {
+            LOGGER.warn("Received unexpected input for new match request");
+        }
     }
 
     /**
