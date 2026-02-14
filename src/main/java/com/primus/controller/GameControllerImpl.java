@@ -151,7 +151,7 @@ public final class GameControllerImpl implements GameController {
             if (intention.isEmpty()) {
                 LOGGER.info("BOT {} drawed a car.", player.getId());
                 manager.executeTurn(null);
-                views.forEach(v -> v.showMessage(player.getId() + " ha pescato."));
+                views.forEach(v -> v.showMessage(player.getName() + " ha pescato."));
 
                 turnCompleted = true;
             } else {
@@ -165,7 +165,7 @@ public final class GameControllerImpl implements GameController {
 
                 if (moveAccepted) {
                     LOGGER.debug("Move accepted");
-                    views.forEach(v -> v.showMessage(player.getId() + " gioca " + cardToPlay));
+                    views.forEach(v -> v.showMessage(player.getName() + " gioca " + cardToPlay));
                     turnCompleted = true;
                 } else {
                     // If move not accepted, bot must choose again
@@ -187,7 +187,7 @@ public final class GameControllerImpl implements GameController {
 
         LOGGER.debug("Waiting an input from human player");
 
-        views.forEach(v -> v.showMessage("Turno di human player"));
+        views.forEach(v -> v.showMessage("Tuo turno"));
 
         while (!turnCompleted) {
             try {
