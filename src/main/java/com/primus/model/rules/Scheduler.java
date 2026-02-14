@@ -1,4 +1,4 @@
-package com.primus.model.core;
+package com.primus.model.rules;
 
 import java.util.List;
 

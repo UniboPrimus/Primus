@@ -11,10 +11,12 @@ import com.primus.model.player.Player;
 import com.primus.model.player.bot.BotFactory;
 import com.primus.model.player.HumanPlayer;
 import com.primus.model.rules.Sanctioner;
-import com.primus.model.rules.Validator;
-import com.primus.model.player.bot.BotFactoryImpl;
 import com.primus.model.rules.SanctionerImpl;
+import com.primus.model.rules.Scheduler;
+import com.primus.model.rules.SchedulerImpl;
+import com.primus.model.rules.Validator;
 import com.primus.model.rules.ValidatorImpl;
+import com.primus.model.player.bot.BotFactoryImpl;
 import com.primus.utils.GameState;
 import com.primus.utils.PlayerSetupData;
 
