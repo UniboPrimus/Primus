@@ -24,7 +24,7 @@ import java.util.Set;
  * </p>
  *
  */
-public class DeckFileReader {
+public final class DeckFileReader {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DeckFileReader.class);
 
@@ -57,7 +57,9 @@ public class DeckFileReader {
 
         LOGGER.info("Starting to load deck from file: {}", fileName);
 
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream(fileName)) {
+        final String resourcePath = fileName.startsWith("/") ? fileName : "/" + fileName;
+
+        try (InputStream is = getClass().getResourceAsStream(resourcePath)) {
             if (is == null) {
                 LOGGER.error("Deck configuration file not found: {}", fileName);
                 throw new IllegalArgumentException("File not found: " + fileName);

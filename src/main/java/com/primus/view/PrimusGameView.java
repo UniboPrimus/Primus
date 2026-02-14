@@ -37,12 +37,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.function.Consumer;
 
 /**
@@ -58,7 +56,6 @@ public final class PrimusGameView extends JFrame implements GameView {
 
     // Constants for layout and sizing
     private static final float SCREEN_PERCENTAGE = 0.75F;
-    private static final int START_CARDS = 7;
     private static final int GAP_BETWEEN_CARDS = 5;
     private static final int SCROLL_UNIT_INCREMENT = 16;
 
@@ -71,8 +68,12 @@ public final class PrimusGameView extends JFrame implements GameView {
     private static final int TABLE_BORDER_BOT = 20;
     private static final int TABLE_GAP = 40;
 
+    //Costant for font
+    private static final String FONT_NAME = "SansSerif";
+
     //Constants for colors
     private static final java.awt.Color BACKGROUND_COLOR = new java.awt.Color(50, 50, 50);
+    private static final java.awt.Color COLOR_RED_ALERT = new java.awt.Color(255, 0, 0, 128);
     private static final java.awt.Color COLOR_GOLD = new java.awt.Color(255, 215, 0);
     private static final java.awt.Color TABLE_COLOR = new java.awt.Color(34, 139, 34);
     private static final java.awt.Color TEXT_COLOR = java.awt.Color.WHITE;
@@ -145,7 +146,6 @@ public final class PrimusGameView extends JFrame implements GameView {
         this.add(tablePanel, BorderLayout.CENTER);
 
         this.setLocationRelativeTo(null);
-
         this.setVisible(true);
         LOGGER.info("View visible");
     }
@@ -164,37 +164,42 @@ public final class PrimusGameView extends JFrame implements GameView {
             resetPanel(playerWest);
             resetPanel(playerEast);
 
-            final Queue<PlayerPanel> botSlots = new LinkedList<>(List.of(playerNorth, playerWest, playerEast));
-
-            for (final PlayerSetupData p : players) {
-                final PlayerPanel assignedPanel;
-
-                if (p.isHuman()) {
-                    // Human is always assigned to the South panel
-                    assignedPanel = playerSouth;
-                    assignedPanel.setName(p.id() + " (Tu)");
-
-                    // Saving human player ID for turn management
-                    this.humanPlayerID = p.id();
-                    LOGGER.info("Human player identified: ID {}", p.id());
-                } else {
-                    // Bots are assigned to the remaining panels
-                    assignedPanel = botSlots.poll();
-                    if (assignedPanel != null) {
-                        assignedPanel.setName(String.valueOf(p.id()));
-                        assignedPanel.updateHandBot(START_CARDS);
-                        LOGGER.debug("Bot ID {} assigned to panel", p.id());
-                    } else {
-                        LOGGER.error("Too many players provided. No slots left for ID {}", p.id());
-                        throw new IllegalStateException("More players provided than available bot slots");
-                    }
+            int humanIndex = -1;
+            for (int i = 0; i < players.size(); i++) {
+                if (players.get(i).isHuman()) {
+                    humanIndex = i;
+                    break;
                 }
-                panelMap.put(p.id(), assignedPanel);
             }
+
+            if (humanIndex == -1) {
+                LOGGER.error("No human player found in setup data");
+                throw new IllegalArgumentException("At least one human player is required");
+            }
+
+            //South is always the human player
+            assignPlayerToPanel(players.get(humanIndex), playerSouth);
+
+            //The other players are assigned in clockwise order starting from the left of the human player
+            assignPlayerToPanel(players.get((humanIndex + 1) % players.size()), playerWest);
+            assignPlayerToPanel(players.get((humanIndex + 2) % players.size()), playerNorth);
+            assignPlayerToPanel(players.get((humanIndex + 3) % players.size()), playerEast);
 
             this.revalidate();
             this.repaint();
         });
+    }
+
+    private void assignPlayerToPanel(final PlayerSetupData p, final PlayerPanel panel) {
+        if (p.isHuman()) {
+            this.humanPlayerID = p.id();
+            panel.setPlayerName(p.name());
+        } else {
+            panel.setPlayerName(p.name());
+            panel.updateHandBot(0);
+        }
+        panelMap.put(p.id(), panel);
+        LOGGER.info("Assigned player {} ({}) to panel position", p.id(), p.name());
     }
 
     /**
@@ -204,7 +209,7 @@ public final class PrimusGameView extends JFrame implements GameView {
      */
     private void resetPanel(final PlayerPanel p) {
         Objects.requireNonNull(p);
-        p.setName("");
+        p.setPlayerName("");
         p.updateHandBot(0);
         p.setActive(false);
     }
@@ -226,24 +231,39 @@ public final class PrimusGameView extends JFrame implements GameView {
         SwingUtilities.invokeLater(() -> {
             final int currentId = gameState.playerId();
             LOGGER.debug("Updating view. Active Player ID: {}", currentId);
-
             final boolean isHumanTurn = Objects.equals(currentId, this.humanPlayerID);
 
+            showCurrentPlayer(currentId);
             // Obtain the active panel based on the current player ID
-            final PlayerPanel activePanel = panelMap.get(currentId);
+            final PlayerPanel humanPanel = panelMap.get(this.humanPlayerID);
 
-            if (activePanel != null) {
-                if (isHumanTurn) {
-                    activePanel.updateHand(gameState.humanHand(), true);
-                } else {
-                    activePanel.updateHandBot(gameState.humanHand().size());
-                }
+            if (humanPanel != null) {
+                humanPanel.updateHand(gameState.humanHand(), isHumanTurn);
             } else {
                 LOGGER.error("Received update for unknown Player ID: {}", currentId);
                 throw new IllegalArgumentException("Unknown Player ID in GameState: " + currentId);
             }
 
+            gameState.playersCardCounts().forEach((playerId, count) -> {
+                if (!Objects.equals(playerId, this.humanPlayerID)) {
+                    final PlayerPanel botPanel = panelMap.get(playerId);
+                    if (botPanel != null) {
+                        botPanel.updateHandBot(count);
+                    } else {
+                        LOGGER.error("Received card count update for unknown Player ID: {}", playerId);
+                        throw new IllegalArgumentException("Unknown Player ID in GameState: " + playerId);
+                    }
+                }
+            });
+
             tablePanel.setTopCard(gameState.topCard());
+
+            if (gameState.isMalusActive() && isHumanTurn) {
+                tablePanel.setAlertMode(true);
+                showMessage("Attenzione! Malus attivo: pesca o difenditi");
+            } else {
+                tablePanel.setAlertMode(false);
+            }
         });
     }
 
@@ -260,6 +280,20 @@ public final class PrimusGameView extends JFrame implements GameView {
             } else {
                 panelMap.get(currentPlayerID).setActive(true);
             }
+        });
+    }
+
+    /**
+     * Method to display the winner of the game in a dialog box.
+     *
+     * @param winnerName the name of the winning player to be displayed in the message
+     */
+    public void showWinner(final String winnerName) {
+        SwingUtilities.invokeLater(() -> {
+            final String msg = "Game Over! Winner: " + winnerName;
+            JOptionPane.showMessageDialog(this, msg, "Game Over", JOptionPane.INFORMATION_MESSAGE);
+            LOGGER.info("Game ended. Winner: {}", winnerName);
+            //TODO add option to start a new game or exit (MAYBE)
         });
     }
 
@@ -371,7 +405,7 @@ public final class PrimusGameView extends JFrame implements GameView {
 
             nameLabel = new JLabel(defaultName, SwingConstants.CENTER);
             nameLabel.setForeground(java.awt.Color.WHITE);
-            nameLabel.setFont(new Font("SansSerif", Font.BOLD, FONT_SIZE_STD));
+            nameLabel.setFont(new Font(FONT_NAME, Font.BOLD, FONT_SIZE_STD));
             this.add(nameLabel, BorderLayout.NORTH);
 
             cardsContainer = new JPanel();
@@ -410,6 +444,10 @@ public final class PrimusGameView extends JFrame implements GameView {
                 this.setBorder(new EmptyBorder(GAP_BETWEEN_CARDS, GAP_BETWEEN_CARDS, GAP_BETWEEN_CARDS, GAP_BETWEEN_CARDS));
                 nameLabel.setForeground(java.awt.Color.WHITE);
             }
+        }
+
+        public void setPlayerName(final String name) {
+            nameLabel.setText(name);
         }
 
         /**
@@ -483,6 +521,7 @@ public final class PrimusGameView extends JFrame implements GameView {
 
         private final JLabel statusLabel;
         private final JPanel centerZone;
+        private final CardComponent deckView;
         private CardComponent discardView;
 
         TablePanel() {
@@ -491,14 +530,14 @@ public final class PrimusGameView extends JFrame implements GameView {
 
             statusLabel = new JLabel("Welcome in Primus", SwingConstants.CENTER);
             statusLabel.setForeground(java.awt.Color.WHITE);
-            statusLabel.setFont(new Font("SansSerif", Font.ITALIC, 16));
+            statusLabel.setFont(new Font(FONT_NAME, Font.ITALIC, 16));
             statusLabel.setBorder(new EmptyBorder(10, 0, TABLE_BORDER_BOT, 0));
             this.add(statusLabel, BorderLayout.SOUTH);
 
             centerZone = new JPanel(new FlowLayout(FlowLayout.CENTER, TABLE_GAP, TABLE_GAP));
             centerZone.setOpaque(false);
 
-            final CardComponent deckView = new CardComponent(null); //Back of the card for the deck
+            deckView = new CardComponent(null); //Back of the card for the deck
             deckView.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             deckView.addMouseListener(new MouseAdapter() {
                 @Override
@@ -541,6 +580,18 @@ public final class PrimusGameView extends JFrame implements GameView {
          */
         public void setStatusMessage(final String msg) {
             statusLabel.setText(msg);
+        }
+
+        public void setAlertMode(final boolean active) {
+            if (active) {
+                deckView.setBorder(BorderFactory.createLineBorder(COLOR_RED_ALERT, 3));
+                statusLabel.setForeground(COLOR_RED_ALERT);
+                statusLabel.setFont(new Font(FONT_NAME, Font.BOLD, FONT_SIZE_STD + 4));
+            } else {
+                deckView.setBorder(null);
+                statusLabel.setForeground(TEXT_COLOR);
+                statusLabel.setFont(new Font(FONT_NAME, Font.ITALIC, FONT_SIZE_STD));
+            }
         }
     }
 
