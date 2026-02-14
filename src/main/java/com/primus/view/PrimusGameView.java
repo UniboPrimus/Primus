@@ -216,12 +216,14 @@ public final class PrimusGameView extends JFrame implements GameView {
 
     @Override
     public void setCardPlayedListener(final Consumer<Card> listener) {
+        Objects.requireNonNull(listener);
         cardPlayedListener = listener;
         LOGGER.debug("CardPlayedListener registered");
     }
 
     @Override
     public void setDrawListener(final Runnable listener) {
+        Objects.requireNonNull(listener);
         drawListener = listener;
         LOGGER.debug("DrawListener registered");
     }
@@ -229,6 +231,7 @@ public final class PrimusGameView extends JFrame implements GameView {
     @Override
     public void updateView(final GameState gameState) {
         SwingUtilities.invokeLater(() -> {
+            Objects.requireNonNull(gameState);
             final int currentId = gameState.playerId();
             LOGGER.debug("Updating view. Active Player ID: {}", currentId);
             final boolean isHumanTurn = Objects.equals(currentId, this.humanPlayerID);
@@ -299,12 +302,16 @@ public final class PrimusGameView extends JFrame implements GameView {
 
     @Override
     public void showMessage(final String message) {
-        SwingUtilities.invokeLater(() -> tablePanel.setStatusMessage(message));
+        SwingUtilities.invokeLater(() -> {
+            Objects.requireNonNull(message);
+            tablePanel.setStatusMessage(message);
+        });
     }
 
     @Override
     public void showError(final String errorMessage) {
         SwingUtilities.invokeLater(() -> {
+            Objects.requireNonNull(errorMessage);
             LOGGER.warn("Showing UI Error: {}", errorMessage);
             JOptionPane.showMessageDialog(this, errorMessage, "Attention", JOptionPane.WARNING_MESSAGE);
         });
