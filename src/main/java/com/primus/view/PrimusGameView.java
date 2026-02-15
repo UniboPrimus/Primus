@@ -63,8 +63,8 @@ public final class PrimusGameView extends JFrame implements GameView {
     private static final int BTN_WIDTH = 100;
     private static final int BTN_HEIGHT = 60;
     private static final int FONT_SIZE_STD = 14;
-    private static final int BOT_CARD_W = 40;
-    private static final int BOT_CARD_H = 60;
+    private static final int BOT_CARD_W = 60;
+    private static final int BOT_CARD_H = 90;
     private static final int TABLE_BORDER_BOT = 20;
     private static final int TABLE_GAP = 40;
 
@@ -89,13 +89,36 @@ public final class PrimusGameView extends JFrame implements GameView {
     private transient Consumer<Boolean> newMatchListener;
     private transient Runnable drawListener;
 
+    /**
+     * Stores the ID of the local human player to distinguish their panel from bot panels.
+     * This is used to determine which hand should be displayed face-up.
+     */
     private Integer humanPlayerID;
+    /**
+     * Maps player IDs to their corresponding {@link PlayerPanel} instances.
+     * allows O(1) access to update a specific player's UI area.
+     */
     private final Map<Integer, PlayerPanel> panelMap = new HashMap<>();
 
+    /**
+     * The panel located at the top of the window.
+     */
     private final PlayerPanel playerNorth;
+    /**
+     * The panel located at the bottom of the window (usually assigned to the human player).
+     */
     private final PlayerPanel playerSouth;
+    /**
+     * The panel located on the left side of the window.
+     */
     private final PlayerPanel playerWest;
+    /**
+     * The panel located on the right side of the window.
+     */
     private final PlayerPanel playerEast;
+    /**
+     * The central panel representing the game table, showing the top card and status messages.
+     */
     private final TablePanel tablePanel;
 
     /**
@@ -268,6 +291,7 @@ public final class PrimusGameView extends JFrame implements GameView {
             });
 
             tablePanel.setTopCard(gameState.topCard());
+            tablePanel.setEventName(gameState.eventName());
 
             if (gameState.isMalusActive() && isHumanTurn) {
                 tablePanel.setAlertMode(true);
@@ -421,7 +445,6 @@ public final class PrimusGameView extends JFrame implements GameView {
 
         private final JLabel nameLabel;
         private final JPanel cardsContainer;
-        private final JScrollPane scrollPane;
         private final boolean isVertical;
 
         /**
@@ -450,7 +473,8 @@ public final class PrimusGameView extends JFrame implements GameView {
             } else {
                 cardsContainer.setLayout(new FlowLayout(FlowLayout.CENTER, GAP_BETWEEN_CARDS, GAP_BETWEEN_CARDS));
             }
-            scrollPane = new JScrollPane(cardsContainer);
+
+            final JScrollPane scrollPane = new JScrollPane(cardsContainer);
             scrollPane.setOpaque(false);
             scrollPane.getViewport().setOpaque(false);
             scrollPane.setBorder(null);
@@ -536,7 +560,11 @@ public final class PrimusGameView extends JFrame implements GameView {
             for (int i = 0; i < count; i++) {
                 final CardComponent cc = new CardComponent(null);
                 if (isVertical) {
-                    cc.setPreferredSize(new Dimension(BOT_CARD_W, BOT_CARD_H));
+                    final Dimension dim = new Dimension(BOT_CARD_W, BOT_CARD_H);
+                    cc.setPreferredSize(new Dimension(dim));
+                    cc.setMinimumSize(dim);
+                    cc.setMaximumSize(dim);
+                    cc.setAlignmentX(CENTER_ALIGNMENT);
                 }
                 cardsContainer.add(cc);
             }
@@ -557,10 +585,16 @@ public final class PrimusGameView extends JFrame implements GameView {
         private final JPanel centerZone;
         private final CardComponent deckView;
         private CardComponent discardView;
+        private final JLabel eventLabel;
 
         TablePanel() {
             this.setLayout(new BorderLayout());
             this.setBackground(TABLE_COLOR);
+
+            eventLabel = new JLabel("Waiting...", SwingConstants.CENTER);
+            eventLabel.setForeground(COLOR_GOLD);
+            eventLabel.setFont(new Font(FONT_NAME, Font.BOLD, FONT_SIZE_STD + 4));
+            this.add(eventLabel, BorderLayout.NORTH);
 
             statusLabel = new JLabel("Welcome in Primus", SwingConstants.CENTER);
             statusLabel.setForeground(java.awt.Color.WHITE);
@@ -590,6 +624,12 @@ public final class PrimusGameView extends JFrame implements GameView {
             centerZone.add(discardView);
 
             this.add(centerZone, BorderLayout.CENTER);
+        }
+
+        void setEventName(final String eventName) {
+            if (eventName != null) {
+                eventLabel.setText("EVENT: " + eventName.toUpperCase(Locale.ROOT));
+            }
         }
 
         /**

@@ -13,14 +13,16 @@ import java.util.Objects;
  * @param humanHand current player's hand
  * @param playerId current player ID
  * @param playersCardCounts a map of player IDs to the count of cards in their hands
- * @param isMalusActive flag indicating if there are cards to be drawn at the start
+ * @param isMalusActive flag indicating if there are cards to be drawn at the start of the turn due to a malus effect
+ * @param eventName the name of the current game event or mode
  */
 public record GameState(
         Card topCard,
         List<Card> humanHand,
         Map<Integer, Integer> playersCardCounts,
         int playerId,
-        boolean isMalusActive
+        boolean isMalusActive,
+        String eventName
 ) {
 
     /**
@@ -30,13 +32,14 @@ public record GameState(
      * @param humanHand current player's hand
      * @param playerId current player's ID
      * @param playersCardCounts a map of player IDs to the count of cards in their hands
-     * @param isMalusActive flag indicating if there are cards to be drawn at the start of the turn due to a
-     *                      malus effect
+     * @param isMalusActive flag indicating if there are cards to be drawn at the start of the turn due to a malus effect
+     * @param eventName the name of the current game event or mode
      */
     public GameState {
         Objects.requireNonNull(topCard);
         Objects.requireNonNull(humanHand);
         Objects.requireNonNull(playersCardCounts);
+        Objects.requireNonNull(eventName);
 
         playersCardCounts = Map.copyOf(playersCardCounts);
         humanHand = List.copyOf(humanHand);

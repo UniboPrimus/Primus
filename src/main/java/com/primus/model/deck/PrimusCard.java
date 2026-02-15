@@ -110,12 +110,20 @@ public final class PrimusCard implements Card {
 
     @Override
     public String toString() {
-        return "PrimusCard{"
-                + "color=" + color
-                + ", value=" + value
-                + (drawAmount > 0 ? ", drawAmount=" + drawAmount : "")
-                + (!effects.isEmpty() ? ", effects=" + effects : "")
-                + '}';
+        final String cleanValue = value.name().replace('_', ' ');
+        final StringBuilder sb = new StringBuilder();
+
+        sb.append('[').append(color).append(' ').append(cleanValue).append(']');
+
+        if (drawAmount > 0) {
+            sb.append(" (+").append(drawAmount).append(')');
+        }
+
+        if (!effects.isEmpty()) {
+            sb.append(' ').append(effects);
+        }
+
+        return sb.toString();
     }
 
     /**

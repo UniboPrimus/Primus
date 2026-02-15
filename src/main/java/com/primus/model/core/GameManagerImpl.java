@@ -45,7 +45,7 @@ public final class GameManagerImpl implements GameManager {
     private DropPile discardPile;
     private Scheduler scheduler;
     private boolean isInitialized;
-    private GameEvent currentEvent; //NOPMD - This field is necessary to keep track of the current game event
+    private GameEvent currentEvent;
 
     /**
      * Constructor initialises the game manager with necessary components.
@@ -123,12 +123,15 @@ public final class GameManagerImpl implements GameManager {
                 .map(Player::getHand)
                 .orElse(List.of());
 
+        final String eventName = (this.currentEvent != null) ? this.currentEvent.getDescription() : "Standard Game";
+
         return new GameState(
                 discardPile.peek(),
                 humanCards,
                 cardCounts,
                 scheduler.getCurrentPlayer(),
-                sanctioner.isActive()
+                sanctioner.isActive(),
+                eventName
         );
     }
 
