@@ -18,17 +18,23 @@ public interface GameManager {
     void init();
 
     /**
+     * Returns the current game state.
+     *
      * @return the game state in current turn
      */
     GameState getGameState();
 
     /**
+     * Returns the setup data for all players in the game.
+     *
      * @return a list of {@link PlayerSetupData} containing the necessary information to create player
      *     instances and initialize the game.
      */
     List<PlayerSetupData> getGameSetup();
 
     /**
+     * Advances the turn order and returns the next player.
+     *
      * @return the next player by advancing the turn order.
      */
     Player nextPlayer();

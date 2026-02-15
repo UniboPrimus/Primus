@@ -19,7 +19,9 @@ public final class SchedulerImpl implements Scheduler {
     private boolean isClockwise = true;
 
     /**
-     * @param playerIDs players
+     * Creates a new Scheduler with the given set of player IDs.
+     *
+     * @param playerIDs the set of player IDs to manage turn order for
      */
     public SchedulerImpl(final Set<Integer> playerIDs) {
         Objects.requireNonNull(playerIDs);

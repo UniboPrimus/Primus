@@ -7,6 +7,8 @@ import java.util.List;
  */
 public interface Scheduler {
     /**
+     * Advances the turn order and returns the next player ID.
+     *
      * @return the next player ID by advancing the turn order.
      */
     int nextPlayer();
@@ -22,6 +24,8 @@ public interface Scheduler {
     void skipTurn();
 
     /**
+     * Returns the current player ID without modifying the turn order.
+     *
      * @return the current player ID without advancing the turn order
      */
     int getCurrentPlayer();
