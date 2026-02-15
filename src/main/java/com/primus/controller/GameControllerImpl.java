@@ -132,6 +132,10 @@ public final class GameControllerImpl implements GameController {
             this.humanInputFuture.cancel(true);
             LOGGER.debug("Cancelling human input future");
         }
+        if (this.playAgainFuture != null && !this.playAgainFuture.isDone()) {
+            this.playAgainFuture.cancel(true);
+            LOGGER.debug("Cancelling play again future");
+        }
     }
 
     @Override
